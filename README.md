@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — Phase 4 (Cookies checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
+> **Status:** Pre-1.0 — Phase 5 (Headers checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
 
 ## Install
 
@@ -45,6 +45,15 @@ After installing, the following checks are available by default:
 - `cookies.session-lifetime` — session.lifetime must be within a reasonable range
 - `cookies.encrypt-middleware` — EncryptCookies middleware must be registered
 - `cookies.encrypt-excludes` — Sensitive cookies must not be in EncryptCookies::$except
+
+**Headers (`headers.*`)**
+- `headers.cors-wildcard` — CORS allowed_origins must not be wildcard with credentials enabled
+- `headers.hsts` — HSTS header middleware must be active in production
+- `headers.x-content-type-options` — X-Content-Type-Options: nosniff middleware must be active
+- `headers.x-frame-options` — X-Frame-Options or frame-ancestors must be set
+- `headers.referrer-policy` — Referrer-Policy header middleware should be active
+- `headers.csp-defined` — CSP middleware must be active (requires `spatie/laravel-csp`)
+- `headers.csp-unsafe-inline` — CSP must not use unsafe-inline or unsafe-eval (requires `spatie/laravel-csp`)
 
 **Dependencies (`dependencies.*`)**
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection

@@ -22,6 +22,13 @@ use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
+use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
+use Baspa\Larascan\Checks\Headers\CspDefinedCheck;
+use Baspa\Larascan\Checks\Headers\CspUnsafeInlineCheck;
+use Baspa\Larascan\Checks\Headers\HstsCheck;
+use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
+use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
+use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -61,6 +68,13 @@ class LarascanServiceProvider extends PackageServiceProvider
             SessionLifetimeCheck::class,
             EncryptCookiesMiddlewareCheck::class,
             EncryptCookiesExcludesCheck::class,
+            CorsWildcardCheck::class,
+            HstsCheck::class,
+            XContentTypeOptionsCheck::class,
+            XFrameOptionsCheck::class,
+            ReferrerPolicyCheck::class,
+            CspDefinedCheck::class,
+            CspUnsafeInlineCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
