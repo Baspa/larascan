@@ -35,6 +35,8 @@ return [
         'php.phpinfo' => ['enabled' => true],
         'auth.bcrypt-rounds' => ['enabled' => true],
         'auth.sanctum-expiration' => ['enabled' => true],
+        'csrf.middleware-disabled' => ['enabled' => true],
+        'csrf.except-suspicious' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],

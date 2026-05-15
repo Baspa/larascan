@@ -18,6 +18,7 @@ it('runs the larascan command and shows the report', function () {
     $checks['headers.x-content-type-options'] = ['enabled' => false];
     $checks['headers.x-frame-options'] = ['enabled' => false];
     $checks['php.display-errors'] = ['enabled' => false];
+    $checks['csrf.middleware-disabled'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
@@ -35,6 +36,9 @@ it('honors --fail-on for exit code', function () {
     config()->set('session.same_site', 'lax');
     config()->set('session.encrypt', true);
     config()->set('session.lifetime', 120);
+    $checks = config('larascan.checks', []);
+    $checks['csrf.middleware-disabled'] = ['enabled' => false];
+    config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --fail-on=critical')->assertExitCode(0);
 });

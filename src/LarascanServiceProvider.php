@@ -22,6 +22,8 @@ use Baspa\Larascan\Checks\Cookies\SessionHttpOnlyCheck;
 use Baspa\Larascan\Checks\Cookies\SessionLifetimeCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
+use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
+use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
@@ -89,6 +91,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             PhpinfoCheck::class,
             BcryptRoundsCheck::class,
             SanctumExpirationCheck::class,
+            CsrfMiddlewareDisabledCheck::class,
+            CsrfExceptSuspiciousCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
