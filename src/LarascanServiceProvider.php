@@ -61,6 +61,9 @@ use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
+use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
+use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
+use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -139,6 +142,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             UnserializeCheck::class,
             OpenRedirectCheck::class,
             HostHeaderCheck::class,
+            BladeUnescapedCheck::class,
+            HtmlStringCheck::class,
+            UrlJavascriptProtocolCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -273,6 +279,19 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(OpenRedirectCheck::class, fn (): OpenRedirectCheck => new OpenRedirectCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(BladeUnescapedCheck::class, fn (): BladeUnescapedCheck => new BladeUnescapedCheck(
+            viewsPath: $this->app->basePath('resources/views'),
+        ));
+
+        $this->app->bind(HtmlStringCheck::class, fn (): HtmlStringCheck => new HtmlStringCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UrlJavascriptProtocolCheck::class, fn (): UrlJavascriptProtocolCheck => new UrlJavascriptProtocolCheck(
+            viewsPath: $this->app->basePath('resources/views'),
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
