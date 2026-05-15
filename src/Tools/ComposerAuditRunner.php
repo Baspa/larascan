@@ -20,16 +20,15 @@ class ComposerAuditRunner implements ToolRunner
         private readonly string $workingDir,
         private readonly string $binary = 'composer',
         private readonly int $timeout = 60,
-    ) {
-    }
+    ) {}
 
     public function isAvailable(): bool
     {
-        if (! is_file($this->workingDir . '/composer.lock')) {
+        if (! is_file($this->workingDir.'/composer.lock')) {
             return false;
         }
 
-        return (new ExecutableFinder())->find($this->binary) !== null;
+        return (new ExecutableFinder)->find($this->binary) !== null;
     }
 
     /**
@@ -51,7 +50,7 @@ class ComposerAuditRunner implements ToolRunner
             $stderr = trim($process->getErrorOutput());
             throw new RuntimeException(
                 $stderr !== ''
-                    ? 'composer audit failed: ' . $stderr
+                    ? 'composer audit failed: '.$stderr
                     : 'composer audit produced no output',
             );
         }
@@ -68,7 +67,7 @@ class ComposerAuditRunner implements ToolRunner
             /** @var array<string, mixed> $decoded */
             $decoded = json_decode($json, associative: true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new RuntimeException('Unable to parse composer audit output: ' . $e->getMessage(), previous: $e);
+            throw new RuntimeException('Unable to parse composer audit output: '.$e->getMessage(), previous: $e);
         }
 
         $advisoriesRaw = $decoded['advisories'] ?? [];

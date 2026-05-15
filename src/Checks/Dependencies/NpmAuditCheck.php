@@ -14,8 +14,7 @@ final class NpmAuditCheck extends AbstractCheck
 {
     public function __construct(
         private readonly NpmAuditRunner $runner,
-    ) {
-    }
+    ) {}
 
     public function id(): string
     {

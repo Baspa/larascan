@@ -12,6 +12,5 @@ final readonly class SemgrepMatch
         public int $line,
         public string $severity,
         public string $message,
-    ) {
-    }
+    ) {}
 }

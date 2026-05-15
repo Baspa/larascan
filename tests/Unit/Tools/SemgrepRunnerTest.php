@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Baspa\Larascan\Tools\Output\SemgrepMatch;
 use Baspa\Larascan\Tools\SemgrepRunner;
+use Symfony\Component\Process\ExecutableFinder;
 
 it('parses zero matches from an empty results array', function () {
     $runner = new SemgrepRunner(workingDir: getcwd() ?: '');
@@ -13,7 +14,7 @@ it('parses zero matches from an empty results array', function () {
 });
 
 it('parses two matches from the fixture', function () {
-    $json = (string) file_get_contents(__DIR__ . '/../../Fixtures/audits/semgrep-results.json');
+    $json = (string) file_get_contents(__DIR__.'/../../Fixtures/audits/semgrep-results.json');
     $runner = new SemgrepRunner(workingDir: getcwd() ?: '');
 
     $matches = iterator_to_array($runner->parseOutput($json));
@@ -39,7 +40,7 @@ it('parses two matches from the fixture', function () {
 
 it('isAvailable depends on the semgrep binary being on PATH', function () {
     $runner = new SemgrepRunner(workingDir: getcwd() ?: '');
-    $finder = new \Symfony\Component\Process\ExecutableFinder();
+    $finder = new ExecutableFinder;
     expect($runner->isAvailable())->toBe($finder->find('semgrep') !== null);
 });
 

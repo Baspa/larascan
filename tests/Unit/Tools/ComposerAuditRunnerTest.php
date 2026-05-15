@@ -16,7 +16,7 @@ it('reports unavailable when the binary cannot be found on PATH', function () {
 });
 
 it('reports unavailable when composer.lock is missing from workingDir', function () {
-    $dir = sys_get_temp_dir() . '/larascan-composer-' . uniqid();
+    $dir = sys_get_temp_dir().'/larascan-composer-'.uniqid();
     mkdir($dir);
     try {
         $runner = new ComposerAuditRunner(workingDir: $dir);
@@ -27,7 +27,7 @@ it('reports unavailable when composer.lock is missing from workingDir', function
 });
 
 it('parses an empty advisories array as zero advisories', function () {
-    $json = (string) file_get_contents(__DIR__ . '/../../Fixtures/audits/composer-audit-clean.json');
+    $json = (string) file_get_contents(__DIR__.'/../../Fixtures/audits/composer-audit-clean.json');
     $runner = new ComposerAuditRunner(workingDir: getcwd() ?: '');
 
     $advisories = iterator_to_array($runner->parseOutput($json));
@@ -35,7 +35,7 @@ it('parses an empty advisories array as zero advisories', function () {
 });
 
 it('parses two advisories from the vulnerable fixture', function () {
-    $json = (string) file_get_contents(__DIR__ . '/../../Fixtures/audits/composer-audit-vulnerable.json');
+    $json = (string) file_get_contents(__DIR__.'/../../Fixtures/audits/composer-audit-vulnerable.json');
     $runner = new ComposerAuditRunner(workingDir: getcwd() ?: '');
 
     $advisories = iterator_to_array($runner->parseOutput($json));

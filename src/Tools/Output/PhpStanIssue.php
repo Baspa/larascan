@@ -12,6 +12,5 @@ final readonly class PhpStanIssue
         public string $message,
         public ?string $identifier = null,
         public bool $ignorable = false,
-    ) {
-    }
+    ) {}
 }

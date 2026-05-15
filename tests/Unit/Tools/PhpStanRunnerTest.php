@@ -11,7 +11,7 @@ it('parses zero issues from an empty files object', function () {
 });
 
 it('parses two issues from the fixture across two files', function () {
-    $json = (string) file_get_contents(__DIR__ . '/../../Fixtures/audits/phpstan-result.json');
+    $json = (string) file_get_contents(__DIR__.'/../../Fixtures/audits/phpstan-result.json');
     $runner = new PhpStanRunner(workingDir: getcwd() ?: '');
 
     $issues = iterator_to_array($runner->parseOutput($json));
@@ -33,23 +33,23 @@ it('parses two issues from the fixture across two files', function () {
 });
 
 it('isAvailable returns true when vendor/bin/phpstan exists in workingDir', function () {
-    $dir = sys_get_temp_dir() . '/larascan-phpstan-' . uniqid();
-    mkdir($dir . '/vendor/bin', recursive: true);
-    file_put_contents($dir . '/vendor/bin/phpstan', '#!/bin/sh');
-    chmod($dir . '/vendor/bin/phpstan', 0755);
+    $dir = sys_get_temp_dir().'/larascan-phpstan-'.uniqid();
+    mkdir($dir.'/vendor/bin', recursive: true);
+    file_put_contents($dir.'/vendor/bin/phpstan', '#!/bin/sh');
+    chmod($dir.'/vendor/bin/phpstan', 0755);
     try {
         $runner = new PhpStanRunner(workingDir: $dir);
         expect($runner->isAvailable())->toBeTrue();
     } finally {
-        unlink($dir . '/vendor/bin/phpstan');
-        rmdir($dir . '/vendor/bin');
-        rmdir($dir . '/vendor');
+        unlink($dir.'/vendor/bin/phpstan');
+        rmdir($dir.'/vendor/bin');
+        rmdir($dir.'/vendor');
         rmdir($dir);
     }
 });
 
 it('isAvailable returns false when vendor/bin/phpstan is absent', function () {
-    $dir = sys_get_temp_dir() . '/larascan-phpstan-' . uniqid();
+    $dir = sys_get_temp_dir().'/larascan-phpstan-'.uniqid();
     mkdir($dir);
     try {
         $runner = new PhpStanRunner(workingDir: $dir);

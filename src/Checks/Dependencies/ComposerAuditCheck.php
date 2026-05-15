@@ -14,8 +14,7 @@ final class ComposerAuditCheck extends AbstractCheck
 {
     public function __construct(
         private readonly ComposerAuditRunner $runner,
-    ) {
-    }
+    ) {}
 
     public function id(): string
     {

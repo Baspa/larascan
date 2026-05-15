@@ -12,6 +12,5 @@ final readonly class NpmAdvisory
         public string $severity,
         public ?string $range = null,
         public ?string $url = null,
-    ) {
-    }
+    ) {}
 }

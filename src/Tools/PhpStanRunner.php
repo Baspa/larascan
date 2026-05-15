@@ -16,19 +16,18 @@ use Symfony\Component\Process\Process;
 class PhpStanRunner implements ToolRunner
 {
     /**
-     * @param array<int, string> $paths
+     * @param  array<int, string>  $paths
      */
     public function __construct(
         private readonly string $workingDir,
         private readonly ?string $configFile = null,
         private readonly array $paths = [],
         private readonly int $timeout = 300,
-    ) {
-    }
+    ) {}
 
     public function isAvailable(): bool
     {
-        return is_file($this->workingDir . '/vendor/bin/phpstan');
+        return is_file($this->workingDir.'/vendor/bin/phpstan');
     }
 
     /**
@@ -36,7 +35,7 @@ class PhpStanRunner implements ToolRunner
      */
     public function run(): iterable
     {
-        $binary = $this->workingDir . '/vendor/bin/phpstan';
+        $binary = $this->workingDir.'/vendor/bin/phpstan';
         $command = [$binary, 'analyse', '--error-format=json', '--no-progress'];
         if ($this->configFile !== null) {
             $command[] = '--configuration';
@@ -55,7 +54,7 @@ class PhpStanRunner implements ToolRunner
             $stderr = trim($process->getErrorOutput());
             throw new RuntimeException(
                 $stderr !== ''
-                    ? 'phpstan failed: ' . $stderr
+                    ? 'phpstan failed: '.$stderr
                     : 'phpstan produced no output',
             );
         }
@@ -72,7 +71,7 @@ class PhpStanRunner implements ToolRunner
             /** @var array<string, mixed> $decoded */
             $decoded = json_decode($json, associative: true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new RuntimeException('Unable to parse phpstan output: ' . $e->getMessage(), previous: $e);
+            throw new RuntimeException('Unable to parse phpstan output: '.$e->getMessage(), previous: $e);
         }
 
         $files = $decoded['files'] ?? [];

@@ -17,8 +17,8 @@ use Symfony\Component\Process\Process;
 class SemgrepRunner implements ToolRunner
 {
     /**
-     * @param array<int, string> $configs  paths or registry URLs passed to --config
-     * @param array<int, string> $targets  paths to scan; defaults to workingDir if empty
+     * @param  array<int, string>  $configs  paths or registry URLs passed to --config
+     * @param  array<int, string>  $targets  paths to scan; defaults to workingDir if empty
      */
     public function __construct(
         private readonly string $workingDir,
@@ -26,12 +26,11 @@ class SemgrepRunner implements ToolRunner
         private readonly array $targets = [],
         private readonly string $binary = 'semgrep',
         private readonly int $timeout = 300,
-    ) {
-    }
+    ) {}
 
     public function isAvailable(): bool
     {
-        return (new ExecutableFinder())->find($this->binary) !== null;
+        return (new ExecutableFinder)->find($this->binary) !== null;
     }
 
     /**
@@ -57,7 +56,7 @@ class SemgrepRunner implements ToolRunner
             $stderr = trim($process->getErrorOutput());
             throw new RuntimeException(
                 $stderr !== ''
-                    ? 'semgrep failed: ' . $stderr
+                    ? 'semgrep failed: '.$stderr
                     : 'semgrep produced no output',
             );
         }
@@ -74,7 +73,7 @@ class SemgrepRunner implements ToolRunner
             /** @var array<string, mixed> $decoded */
             $decoded = json_decode($json, associative: true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new RuntimeException('Unable to parse semgrep output: ' . $e->getMessage(), previous: $e);
+            throw new RuntimeException('Unable to parse semgrep output: '.$e->getMessage(), previous: $e);
         }
 
         $results = $decoded['results'] ?? [];

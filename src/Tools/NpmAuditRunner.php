@@ -20,16 +20,15 @@ class NpmAuditRunner implements ToolRunner
         private readonly string $workingDir,
         private readonly string $binary = 'npm',
         private readonly int $timeout = 120,
-    ) {
-    }
+    ) {}
 
     public function isAvailable(): bool
     {
-        if (! is_file($this->workingDir . '/package.json')) {
+        if (! is_file($this->workingDir.'/package.json')) {
             return false;
         }
 
-        return (new ExecutableFinder())->find($this->binary) !== null;
+        return (new ExecutableFinder)->find($this->binary) !== null;
     }
 
     /**
@@ -48,7 +47,7 @@ class NpmAuditRunner implements ToolRunner
             $stderr = trim($process->getErrorOutput());
             throw new RuntimeException(
                 $stderr !== ''
-                    ? 'npm audit failed: ' . $stderr
+                    ? 'npm audit failed: '.$stderr
                     : 'npm audit produced no output',
             );
         }
@@ -65,7 +64,7 @@ class NpmAuditRunner implements ToolRunner
             /** @var array<string, mixed> $decoded */
             $decoded = json_decode($json, associative: true, flags: JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new RuntimeException('Unable to parse npm audit output: ' . $e->getMessage(), previous: $e);
+            throw new RuntimeException('Unable to parse npm audit output: '.$e->getMessage(), previous: $e);
         }
 
         $vulns = $decoded['vulnerabilities'] ?? [];

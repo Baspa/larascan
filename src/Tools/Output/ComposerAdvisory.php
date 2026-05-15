@@ -13,6 +13,5 @@ final readonly class ComposerAdvisory
         public ?string $cve = null,
         public ?string $link = null,
         public ?string $affectedVersions = null,
-    ) {
-    }
+    ) {}
 }
