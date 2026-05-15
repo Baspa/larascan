@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — All 70 spec checks live. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap to v1.0.
+> **Status:** v1.0 ready — 70 checks across 15 categories, PHPStan level 8, supports Laravel 10/11/12/13. See [CHANGELOG.md](CHANGELOG.md) for the v1.0 release notes.
 
 ## Install
 
