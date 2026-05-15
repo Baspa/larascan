@@ -18,9 +18,9 @@ return [
     ],
 
     'tools' => [
-        'semgrep' => env('LARASCAN_SEMGREP_BIN', 'semgrep'),
+        'composer' => env('LARASCAN_COMPOSER_BIN', 'composer'),
         'npm' => env('LARASCAN_NPM_BIN', 'npm'),
-        'timeout' => 60,
+        'semgrep' => env('LARASCAN_SEMGREP_BIN', 'semgrep'),
     ],
 
     'baseline' => null,
