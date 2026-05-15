@@ -18,7 +18,7 @@ This writes `.github/workflows/larascan.yml`. The workflow:
 - Triggers on push to main, every PR, and daily at 03:00 UTC
 - Sets up PHP 8.4, composer:v2, optionally Node 20 (if `package.json` exists)
 - Caches composer deps
-- Runs `php artisan larascan --fail-on=high`
+- Runs `php artisan larascan --fail-on=high --only-failed` (passed/skipped rows hidden — Report Card at the end keeps the overview)
 
 ## Exit codes
 
@@ -30,7 +30,7 @@ This writes `.github/workflows/larascan.yml`. The workflow:
 
 ## Other CI systems
 
-The artisan command is environment-agnostic. For GitLab/Bitbucket/CircleCI, just run `php artisan larascan --fail-on=high` in a job after `composer install`.
+The artisan command is environment-agnostic. For GitLab/Bitbucket/CircleCI, just run `php artisan larascan --fail-on=high --only-failed` in a job after `composer install`.
 
 ## AI agent integration
 

@@ -44,4 +44,4 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Run larascan
-        run: php artisan larascan --fail-on=high --no-interaction
+        run: php artisan larascan --fail-on=high --only-failed --no-interaction
