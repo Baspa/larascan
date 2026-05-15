@@ -26,6 +26,9 @@ use Baspa\Larascan\Checks\Cookies\SessionHttpOnlyCheck;
 use Baspa\Larascan\Checks\Cookies\SessionLifetimeCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
+use Baspa\Larascan\Checks\Crypto\CipherNotPinnedCheck;
+use Baspa\Larascan\Checks\Crypto\WeakHashCheck;
+use Baspa\Larascan\Checks\Crypto\WeakRandomCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
@@ -121,6 +124,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
             ApiAbilityScopingCheck::class,
+            WeakHashCheck::class,
+            WeakRandomCheck::class,
+            CipherNotPinnedCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -216,6 +222,20 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(WeakHashCheck::class, fn (): WeakHashCheck => new WeakHashCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(WeakRandomCheck::class, fn (): WeakRandomCheck => new WeakRandomCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(CipherNotPinnedCheck::class, fn (): CipherNotPinnedCheck => new CipherNotPinnedCheck(
+            configPath: $this->app->configPath(),
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
