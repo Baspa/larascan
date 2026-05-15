@@ -41,6 +41,9 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Injection\CommandInjectionCheck;
+use Baspa\Larascan\Checks\Injection\ProcessShellCheck;
+use Baspa\Larascan\Checks\Injection\UnserializeCheck;
 use Baspa\Larascan\Checks\Logging\CustomErrorPagesCheck;
 use Baspa\Larascan\Checks\Logging\DdDumpDebugCheck;
 use Baspa\Larascan\Checks\Logging\SensitiveInLogContextCheck;
@@ -129,6 +132,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             WeakRandomCheck::class,
             CipherNotPinnedCheck::class,
             HardcodedSecretCheck::class,
+            CommandInjectionCheck::class,
+            ProcessShellCheck::class,
+            UnserializeCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -241,6 +247,21 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(HardcodedSecretCheck::class, fn (): HardcodedSecretCheck => new HardcodedSecretCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(CommandInjectionCheck::class, fn (): CommandInjectionCheck => new CommandInjectionCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ProcessShellCheck::class, fn (): ProcessShellCheck => new ProcessShellCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnserializeCheck::class, fn (): UnserializeCheck => new UnserializeCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
