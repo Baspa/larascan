@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
+use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
+use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
+use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
+use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
+use Baspa\Larascan\Checks\Auth\SignedRoutesVerifyCheck;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
@@ -20,6 +26,8 @@ use Baspa\Larascan\Checks\Cookies\SessionHttpOnlyCheck;
 use Baspa\Larascan\Checks\Cookies\SessionLifetimeCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
+use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
+use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
@@ -29,6 +37,21 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Logging\CustomErrorPagesCheck;
+use Baspa\Larascan\Checks\Logging\DdDumpDebugCheck;
+use Baspa\Larascan\Checks\Logging\SensitiveInLogContextCheck;
+use Baspa\Larascan\Checks\Models\ForceFillUserInputCheck;
+use Baspa\Larascan\Checks\Models\ForeignKeyFillableCheck;
+use Baspa\Larascan\Checks\Models\UnguardCallCheck;
+use Baspa\Larascan\Checks\Models\UnguardedModelCheck;
+use Baspa\Larascan\Checks\Php\AllowUrlFopenCheck;
+use Baspa\Larascan\Checks\Php\DisplayErrorsCheck;
+use Baspa\Larascan\Checks\Php\ExposePhpCheck;
+use Baspa\Larascan\Checks\Php\PhpinfoCheck;
+use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
+use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
+use Baspa\Larascan\Checks\Repo\DependabotCheck;
+use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -75,6 +98,29 @@ class LarascanServiceProvider extends PackageServiceProvider
             ReferrerPolicyCheck::class,
             CspDefinedCheck::class,
             CspUnsafeInlineCheck::class,
+            ExposePhpCheck::class,
+            DisplayErrorsCheck::class,
+            AllowUrlFopenCheck::class,
+            PublicSensitiveFilesCheck::class,
+            PhpinfoCheck::class,
+            BcryptRoundsCheck::class,
+            SanctumExpirationCheck::class,
+            CsrfMiddlewareDisabledCheck::class,
+            CsrfExceptSuspiciousCheck::class,
+            UnguardedModelCheck::class,
+            UnguardCallCheck::class,
+            ForeignKeyFillableCheck::class,
+            ForceFillUserInputCheck::class,
+            DdDumpDebugCheck::class,
+            CustomErrorPagesCheck::class,
+            SensitiveInLogContextCheck::class,
+            DependabotCheck::class,
+            GitleaksHistoryCheck::class,
+            DebugToolbarsCheck::class,
+            LoginThrottleCheck::class,
+            PasswordColumnPlainCheck::class,
+            SignedRoutesVerifyCheck::class,
+            ApiAbilityScopingCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -104,6 +150,71 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(EnvCallsOutsideConfigCheck::class, fn (): EnvCallsOutsideConfigCheck => new EnvCallsOutsideConfigCheck(
             basePath: $this->app->basePath(),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(PublicSensitiveFilesCheck::class, fn (): PublicSensitiveFilesCheck => new PublicSensitiveFilesCheck(
+            publicPath: $this->app->publicPath(),
+        ));
+
+        $this->app->bind(PhpinfoCheck::class, fn (): PhpinfoCheck => new PhpinfoCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnguardedModelCheck::class, fn (): UnguardedModelCheck => new UnguardedModelCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnguardCallCheck::class, fn (): UnguardCallCheck => new UnguardCallCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ForeignKeyFillableCheck::class, fn (): ForeignKeyFillableCheck => new ForeignKeyFillableCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ForceFillUserInputCheck::class, fn (): ForceFillUserInputCheck => new ForceFillUserInputCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(DdDumpDebugCheck::class, fn (): DdDumpDebugCheck => new DdDumpDebugCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(CustomErrorPagesCheck::class, fn (): CustomErrorPagesCheck => new CustomErrorPagesCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(SensitiveInLogContextCheck::class, fn (): SensitiveInLogContextCheck => new SensitiveInLogContextCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(DependabotCheck::class, fn (): DependabotCheck => new DependabotCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(GitleaksHistoryCheck::class, fn (): GitleaksHistoryCheck => new GitleaksHistoryCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(DebugToolbarsCheck::class, fn (): DebugToolbarsCheck => new DebugToolbarsCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
+            appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
 
