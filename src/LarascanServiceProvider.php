@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Baspa\Larascan;
 
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
+use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Support\CheckRegistry;
+use Baspa\Larascan\Tools\ComposerAuditRunner;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -33,6 +35,10 @@ class LarascanServiceProvider extends PackageServiceProvider
             $registry = new CheckRegistry($config);
 
             $registry->register(new AppDebugCheck($this->app));
+
+            $registry->register(new ComposerAuditCheck(
+                new ComposerAuditRunner(workingDir: $this->app->basePath()),
+            ));
 
             return $registry;
         });

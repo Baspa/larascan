@@ -6,7 +6,7 @@ return [
     'fail_on' => 'high',
 
     'checks' => [
-        // populated as checks are added in later phases
+        'dependencies.composer-audit' => ['enabled' => true],
     ],
 
     'ignore' => [
