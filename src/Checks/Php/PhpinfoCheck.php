@@ -82,7 +82,7 @@ final class PhpinfoCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "phpinfo() called in {$relative} — leaks environment variables, loaded modules, and absolute paths. Remove from production code.",
+                    message: 'phpinfo() leaks environment variables, loaded modules, and absolute paths — remove from production code.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

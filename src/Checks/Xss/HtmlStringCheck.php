@@ -100,7 +100,7 @@ final class HtmlStringCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "HtmlString instantiation in {$relative}:{$new->getStartLine()} — produces unescaped HTML. Verify input is trusted/sanitized.",
+                    message: 'HtmlString instantiation produces unescaped HTML — verify input is trusted/sanitized.',
                     file: $relative,
                     line: $new->getStartLine(),
                 );

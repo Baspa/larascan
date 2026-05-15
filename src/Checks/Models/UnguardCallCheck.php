@@ -82,7 +82,7 @@ final class UnguardCallCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Static `unguard()` call in {$relative}:{$call->getStartLine()} — disables mass-assignment protection globally for the rest of the request.",
+                    message: 'Static `unguard()` call disables mass-assignment protection globally for the rest of the request.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

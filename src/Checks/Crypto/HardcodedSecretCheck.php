@@ -107,7 +107,7 @@ final class HardcodedSecretCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Possible hardcoded secret in {$relative}:{$line} — pattern '{$patternMatched}'. Move to .env.",
+                    message: "Possible hardcoded secret (pattern '{$patternMatched}') — move to .env.",
                     file: $relative,
                     line: $line,
                 );

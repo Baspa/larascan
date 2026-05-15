@@ -102,7 +102,7 @@ final class OpenRedirectCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "redirect() with user-controlled URL in {$relative}:{$redirect->getStartLine()} — open redirect risk. Allowlist target URLs or use signed routes.",
+                    message: 'redirect() with user-controlled URL — open redirect risk. Allowlist target URLs or use signed routes.',
                     file: $relative,
                     line: $redirect->getStartLine(),
                 );

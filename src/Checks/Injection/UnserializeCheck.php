@@ -82,7 +82,7 @@ final class UnserializeCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "`unserialize()` in {$relative}:{$call->getStartLine()} — RCE-prone if the input ever comes from untrusted data. Use json_decode() or PHP's `Hash::check()` for opaque tokens.",
+                    message: "`unserialize()` is RCE-prone if the input ever comes from untrusted data — use json_decode() or PHP's `Hash::check()` for opaque tokens.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

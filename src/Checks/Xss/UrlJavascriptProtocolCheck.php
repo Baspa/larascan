@@ -80,7 +80,7 @@ final class UrlJavascriptProtocolCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "javascript: URL in {$relative}:{$line} — XSS sink. Replace with onclick handler bound via JavaScript.",
+                    message: 'javascript: URL is an XSS sink — replace with onclick handler bound via JavaScript.',
                     file: $relative,
                     line: $line,
                 );

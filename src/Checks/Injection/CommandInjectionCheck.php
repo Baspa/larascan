@@ -100,7 +100,7 @@ final class CommandInjectionCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Command execution via '{$funcName}()' in {$relative}:{$call->getStartLine()} — vulnerable to command injection if any argument comes from user input. Use Symfony Process with array-form arguments instead.",
+                    message: "Command execution via '{$funcName}()' — vulnerable to command injection if any argument comes from user input. Use Symfony Process with array-form arguments instead.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

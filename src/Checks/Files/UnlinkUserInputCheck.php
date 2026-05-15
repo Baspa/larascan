@@ -93,7 +93,7 @@ final class UnlinkUserInputCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "`{$funcName}()` in {$relative}:{$call->getStartLine()} — deletes filesystem entries. Verify path is not user-controlled.",
+                    message: "`{$funcName}()` deletes filesystem entries — verify path is not user-controlled.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

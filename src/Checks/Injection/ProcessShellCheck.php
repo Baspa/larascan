@@ -97,7 +97,7 @@ final class ProcessShellCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "`Process::fromShellCommandline()` in {$relative}:{$call->getStartLine()} — invokes a shell which interprets metacharacters. Use the `new Process([...])` array form to pass arguments safely.",
+                    message: '`Process::fromShellCommandline()` invokes a shell which interprets metacharacters — use the `new Process([...])` array form to pass arguments safely.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

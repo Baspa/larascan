@@ -100,7 +100,7 @@ final class SqlValidationRuleInjectionCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Validation rules from variable in {$relative}:{$call->getStartLine()} — if rules come from user input, attackers can bypass validation or inject SQL via 'exists:table' rule. Use a literal array.",
+                    message: "Validation rules sourced from a variable — if rules come from user input, attackers can bypass validation or inject SQL via 'exists:table' rule. Use a literal array.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );
@@ -123,7 +123,7 @@ final class SqlValidationRuleInjectionCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Validation rules from variable in {$relative}:{$call->getStartLine()} — if rules come from user input, attackers can bypass validation or inject SQL via 'exists:table' rule. Use a literal array.",
+                    message: "Validation rules sourced from a variable — if rules come from user input, attackers can bypass validation or inject SQL via 'exists:table' rule. Use a literal array.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );
@@ -144,7 +144,7 @@ final class SqlValidationRuleInjectionCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Validation rules from variable in {$relative}:{$call->getStartLine()} — if rules come from user input, attackers can bypass validation or inject SQL via 'exists:table' rule. Use a literal array.",
+                    message: "Validation rules sourced from a variable — if rules come from user input, attackers can bypass validation or inject SQL via 'exists:table' rule. Use a literal array.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

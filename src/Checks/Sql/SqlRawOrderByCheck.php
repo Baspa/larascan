@@ -93,7 +93,7 @@ final class SqlRawOrderByCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "orderByRaw with user input in {$relative}:{$call->getStartLine()} — SQL injection in ORDER BY clause. Validate sort column against an allowlist.",
+                    message: 'orderByRaw with user input — SQL injection in ORDER BY clause. Validate sort column against an allowlist.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

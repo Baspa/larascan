@@ -113,7 +113,7 @@ final class PublicExecutableUploadsCheck extends AbstractCheck
                     yield new Finding(
                         checkId: $this->id(),
                         severity: $this->severity(),
-                        message: "Upload rule allows executable extension '{$normalized}' in {$relative}:{$line} — uploaded PHP files in webroot get executed.",
+                        message: "Upload rule allows executable extension '{$normalized}' — uploaded PHP files in webroot get executed.",
                         file: $relative,
                         line: $line,
                     );
@@ -155,7 +155,7 @@ final class PublicExecutableUploadsCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Executable file '{$relative}' exists under public upload directory — uploaded PHP files in webroot get executed.",
+                    message: 'Executable file exists under public upload directory — uploaded PHP files in webroot get executed.',
                     file: $relative,
                     line: null,
                 );

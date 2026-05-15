@@ -90,7 +90,7 @@ final class WeakRandomCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Weak random function '{$funcName}' in {$relative}:{$call->getStartLine()} — not cryptographically secure. Use random_bytes(), random_int(), or Str::random() for security-sensitive tokens.",
+                    message: "Weak random function '{$funcName}' — not cryptographically secure. Use random_bytes(), random_int(), or Str::random() for security-sensitive tokens.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

@@ -82,7 +82,7 @@ final class UploadMimesValidationCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "`extensions:` validation rule in {$relative}:{$line} — checks only filename extension which attackers can spoof. Use `mimes:` rule to validate MIME type.",
+                    message: '`extensions:` validation rule checks only filename extension which attackers can spoof — use `mimes:` rule to validate MIME type.',
                     file: $relative,
                     line: $line,
                 );

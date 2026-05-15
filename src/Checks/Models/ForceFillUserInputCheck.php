@@ -86,7 +86,7 @@ final class ForceFillUserInputCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "forceFill() called in {$relative}:{$call->getStartLine()} — bypasses \$fillable/\$guarded mass-assignment protection.",
+                    message: 'forceFill() bypasses $fillable/$guarded mass-assignment protection.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

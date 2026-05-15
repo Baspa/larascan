@@ -107,7 +107,7 @@ final class SqlRawUserInputCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Raw SQL '{$methodName}' in {$relative}:{$call->getStartLine()} with user-input argument — SQL injection risk. Use parameter bindings: ->whereRaw('col = ?', [\$value]).",
+                    message: "Raw SQL '{$methodName}' with user-input argument — SQL injection risk. Use parameter bindings: ->whereRaw('col = ?', [\$value]).",
                     file: $relative,
                     line: $call->getStartLine(),
                 );
@@ -132,7 +132,7 @@ final class SqlRawUserInputCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Raw SQL '{$methodName}' in {$relative}:{$call->getStartLine()} with user-input argument — SQL injection risk. Use parameter bindings: ->whereRaw('col = ?', [\$value]).",
+                    message: "Raw SQL '{$methodName}' with user-input argument — SQL injection risk. Use parameter bindings: ->whereRaw('col = ?', [\$value]).",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

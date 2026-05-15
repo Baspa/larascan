@@ -82,7 +82,7 @@ final class EnvCallsOutsideConfigCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "env() called in {$relative} — move to a config file so config caching keeps working.",
+                    message: 'env() called outside config/ — move to a config file so config caching keeps working.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

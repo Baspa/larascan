@@ -129,7 +129,7 @@ final class ForeignKeyFillableCheck extends AbstractCheck
                             yield new Finding(
                                 checkId: $this->id(),
                                 severity: $this->severity(),
-                                message: "Model in {$relative} has foreign key '{$column}' in \$fillable — allows mass assignment of ownership, enabling tenant escape attacks.",
+                                message: "Foreign key '{$column}' in \$fillable — allows mass assignment of ownership, enabling tenant escape attacks.",
                                 file: $relative,
                                 line: $item->getStartLine(),
                             );

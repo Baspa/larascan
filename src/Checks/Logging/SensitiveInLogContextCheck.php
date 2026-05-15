@@ -144,7 +144,7 @@ final class SensitiveInLogContextCheck extends AbstractCheck
                     yield new Finding(
                         checkId: $this->id(),
                         severity: $this->severity(),
-                        message: "Log context in {$relative}:{$call->getStartLine()} contains sensitive key '{$item->key->value}' — log files will store the raw value.",
+                        message: "Log context contains sensitive key '{$item->key->value}' — log files will store the raw value.",
                         file: $relative,
                         line: $call->getStartLine(),
                     );

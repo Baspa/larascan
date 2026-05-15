@@ -86,7 +86,7 @@ final class BladeUnescapedCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Blade {!! ... !!} unescaped output in {$relative}:{$line} containing PHP variable — potential XSS if variable holds user input. Use {{ }} for HTML-escaped output.",
+                    message: 'Blade {!! ... !!} unescaped output containing PHP variable — potential XSS if variable holds user input. Use {{ }} for HTML-escaped output.',
                     file: $relative,
                     line: $line,
                 );

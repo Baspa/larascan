@@ -72,7 +72,7 @@ it('fails when validate() uses a variable as rules', function () {
     expect($findings)->toHaveCount(1)
         ->and($findings[0]->severity)->toBe(Severity::Medium)
         ->and($findings[0]->checkId)->toBe('sql.validation-rule-injection')
-        ->and($findings[0]->message)->toContain('Validation rules from variable')
+        ->and($findings[0]->message)->toContain('Validation rules sourced from a variable')
         ->and($findings[0]->message)->toContain('exists:table');
 });
 
@@ -87,5 +87,5 @@ it('fails when Validator::make() uses a variable as rules', function () {
     expect($findings)->toHaveCount(1)
         ->and($findings[0]->severity)->toBe(Severity::Medium)
         ->and($findings[0]->checkId)->toBe('sql.validation-rule-injection')
-        ->and($findings[0]->message)->toContain('Validation rules from variable');
+        ->and($findings[0]->message)->toContain('Validation rules sourced from a variable');
 });

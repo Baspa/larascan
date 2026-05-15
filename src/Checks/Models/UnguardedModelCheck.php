@@ -103,7 +103,7 @@ final class UnguardedModelCheck extends AbstractCheck
                     yield new Finding(
                         checkId: $this->id(),
                         severity: $this->severity(),
-                        message: "Model in {$relative} has `\$guarded = []` — every attribute is mass-assignable, including admin flags.",
+                        message: 'Model has `$guarded = []` — every attribute is mass-assignable, including admin flags.',
                         file: $relative,
                         line: $property->getStartLine(),
                     );

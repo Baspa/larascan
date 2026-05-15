@@ -63,7 +63,7 @@ it('fails on AWS access key pattern', function () {
         ->and($findings[0]->severity)->toBe(Severity::Critical)
         ->and($findings[0]->checkId)->toBe('crypto.hardcoded-secret')
         ->and($findings[0]->message)->toContain('aws-access-key')
-        ->and($findings[0]->message)->toContain('Move to .env')
+        ->and($findings[0]->message)->toContain('move to .env')
         ->and($findings[0]->line)->toBe(4);
 });
 

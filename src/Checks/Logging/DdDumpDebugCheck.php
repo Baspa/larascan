@@ -90,7 +90,7 @@ final class DdDumpDebugCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "{$funcName}() left in {$relative}:{$call->getStartLine()} — debugging helper in production code can leak data and crash responses.",
+                    message: "{$funcName}() left in application code — debugging helper in production can leak data and crash responses.",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

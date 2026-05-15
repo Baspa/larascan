@@ -134,7 +134,7 @@ final class PathTraversalCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Storage/File operation with user-controlled path in {$relative}:{$call->getStartLine()} — path traversal possible. Validate against allowlist of paths.",
+                    message: 'Storage/File operation with user-controlled path — path traversal possible. Validate against an allowlist of paths.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );

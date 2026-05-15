@@ -123,7 +123,7 @@ final class WeakHashCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Weak hash function '{$reported}' used in {$relative}:{$call->getStartLine()} — md5/sha1 are broken for security purposes. Use password_hash() / Hash::make() / hash('sha256', ...).",
+                    message: "Weak hash function '{$reported}' — md5/sha1 are broken for security purposes. Use password_hash() / Hash::make() / hash('sha256', ...).",
                     file: $relative,
                     line: $call->getStartLine(),
                 );

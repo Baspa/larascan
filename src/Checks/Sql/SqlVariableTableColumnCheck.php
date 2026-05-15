@@ -97,7 +97,7 @@ final class SqlVariableTableColumnCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Variable DB::table() argument in {$relative}:{$call->getStartLine()} — variable table/column name. Validate against an allowlist before passing.",
+                    message: 'Variable DB::table() argument — variable table/column name. Validate against an allowlist before passing.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );
@@ -118,7 +118,7 @@ final class SqlVariableTableColumnCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Variable ->from() argument in {$relative}:{$call->getStartLine()} — variable table/column name. Validate against an allowlist before passing.",
+                    message: 'Variable ->from() argument — variable table/column name. Validate against an allowlist before passing.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );
@@ -139,7 +139,7 @@ final class SqlVariableTableColumnCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "Variable ->select() argument in {$relative}:{$call->getStartLine()} — variable table/column name. Validate against an allowlist before passing.",
+                    message: 'Variable ->select() argument — variable table/column name. Validate against an allowlist before passing.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );
