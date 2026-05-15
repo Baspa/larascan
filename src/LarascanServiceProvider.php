@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
 use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
 use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
+use Baspa\Larascan\Checks\Auth\SignedRoutesVerifyCheck;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
@@ -117,6 +119,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             DebugToolbarsCheck::class,
             LoginThrottleCheck::class,
             PasswordColumnPlainCheck::class,
+            SignedRoutesVerifyCheck::class,
+            ApiAbilityScopingCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -205,6 +209,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
