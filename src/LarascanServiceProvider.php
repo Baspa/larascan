@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
+use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
@@ -85,6 +87,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             AllowUrlFopenCheck::class,
             PublicSensitiveFilesCheck::class,
             PhpinfoCheck::class,
+            BcryptRoundsCheck::class,
+            SanctumExpirationCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];

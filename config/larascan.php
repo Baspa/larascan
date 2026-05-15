@@ -33,6 +33,8 @@ return [
         'php.allow-url-fopen' => ['enabled' => true],
         'php.public-sensitive-files' => ['enabled' => true],
         'php.phpinfo' => ['enabled' => true],
+        'auth.bcrypt-rounds' => ['enabled' => true],
+        'auth.sanctum-expiration' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
