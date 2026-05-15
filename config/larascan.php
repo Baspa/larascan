@@ -11,6 +11,7 @@ return [
         'config.env-not-committed' => ['enabled' => true],
         'config.env-example-sync' => ['enabled' => true],
         'config.log-level' => ['enabled' => true],
+        'config.env-calls-outside-config' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
