@@ -8,6 +8,9 @@ it('runs the larascan command and shows the report', function () {
     config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
     config()->set('app.env', 'production');
     config()->set('app.debug', false);
+    config()->set('session.secure', true);
+    config()->set('session.http_only', true);
+    config()->set('session.same_site', 'lax');
 
     $this->artisan('larascan')
         ->expectsOutputToContain('larascan — security scan')
@@ -19,6 +22,9 @@ it('honors --fail-on for exit code', function () {
     // With AppKeyCheck registered, testbench's empty app.key would yield a
     // Critical finding. Set a key so the scan runs cleanly.
     config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('session.secure', true);
+    config()->set('session.http_only', true);
+    config()->set('session.same_site', 'lax');
 
     $this->artisan('larascan --fail-on=critical')->assertExitCode(0);
 });
@@ -46,6 +52,9 @@ it('accepts a valid --category filter', function () {
     config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
     config()->set('app.env', 'production');
     config()->set('app.debug', false);
+    config()->set('session.secure', true);
+    config()->set('session.http_only', true);
+    config()->set('session.same_site', 'lax');
 
     $this->artisan('larascan --category=config')
         ->expectsOutputToContain('larascan — security scan')
