@@ -21,3 +21,21 @@ it('filters checks via --check pattern', function () {
         ->expectsOutputToContain('larascan — security scan')
         ->assertExitCode(0);
 });
+
+it('exits 2 on invalid --fail-on value', function () {
+    $this->artisan('larascan --fail-on=bogus')
+        ->expectsOutputToContain('Invalid --fail-on value: bogus')
+        ->assertExitCode(2);
+});
+
+it('exits 2 on unknown --category', function () {
+    $this->artisan('larascan --category=nonsense')
+        ->expectsOutputToContain('Unknown category: nonsense')
+        ->assertExitCode(2);
+});
+
+it('accepts a valid --category filter', function () {
+    $this->artisan('larascan --category=config')
+        ->expectsOutputToContain('larascan — security scan')
+        ->assertExitCode(0);
+});
