@@ -34,6 +34,8 @@ use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
+use Baspa\Larascan\Checks\Files\PathTraversalCheck;
+use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
 use Baspa\Larascan\Checks\Headers\CspDefinedCheck;
 use Baspa\Larascan\Checks\Headers\CspUnsafeInlineCheck;
@@ -145,6 +147,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             BladeUnescapedCheck::class,
             HtmlStringCheck::class,
             UrlJavascriptProtocolCheck::class,
+            PathTraversalCheck::class,
+            UnlinkUserInputCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -292,6 +296,16 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(UrlJavascriptProtocolCheck::class, fn (): UrlJavascriptProtocolCheck => new UrlJavascriptProtocolCheck(
             viewsPath: $this->app->basePath('resources/views'),
+        ));
+
+        $this->app->bind(PathTraversalCheck::class, fn (): PathTraversalCheck => new PathTraversalCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnlinkUserInputCheck::class, fn (): UnlinkUserInputCheck => new UnlinkUserInputCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {

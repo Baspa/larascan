@@ -51,6 +51,8 @@ return [
         'xss.blade-unescaped' => ['enabled' => true],
         'xss.html-string' => ['enabled' => true],
         'xss.url-javascript-protocol' => ['enabled' => true],
+        'files.path-traversal' => ['enabled' => true],
+        'files.unlink-user-input' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],
