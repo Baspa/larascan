@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Baspa\Larascan;
 
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
+use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
+use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
 use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
@@ -113,6 +115,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             DependabotCheck::class,
             GitleaksHistoryCheck::class,
             DebugToolbarsCheck::class,
+            LoginThrottleCheck::class,
+            PasswordColumnPlainCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -198,6 +202,11 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(DebugToolbarsCheck::class, fn (): DebugToolbarsCheck => new DebugToolbarsCheck(
             basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {

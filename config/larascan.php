@@ -35,6 +35,8 @@ return [
         'php.phpinfo' => ['enabled' => true],
         'auth.bcrypt-rounds' => ['enabled' => true],
         'auth.sanctum-expiration' => ['enabled' => true],
+        'auth.login-throttle' => ['enabled' => true],
+        'auth.password-column-plain' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],
