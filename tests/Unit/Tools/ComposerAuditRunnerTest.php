@@ -10,6 +10,11 @@ it('reports composer is available', function () {
     expect($runner->isAvailable())->toBeTrue();
 });
 
+it('reports unavailable when the binary cannot be found on PATH', function () {
+    $runner = new ComposerAuditRunner(workingDir: getcwd() ?: '', binary: 'definitely-not-a-real-binary-xyz');
+    expect($runner->isAvailable())->toBeFalse();
+});
+
 it('parses an empty advisories array as zero advisories', function () {
     $json = (string) file_get_contents(__DIR__ . '/../../Fixtures/audits/composer-audit-clean.json');
     $runner = new ComposerAuditRunner(workingDir: getcwd() ?: '');

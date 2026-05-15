@@ -11,6 +11,9 @@ use RuntimeException;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 
+/**
+ * Not final by design: subclassing is the supported seam for test doubles.
+ */
 class ComposerAuditRunner implements ToolRunner
 {
     public function __construct(
@@ -35,11 +38,18 @@ class ComposerAuditRunner implements ToolRunner
             $this->workingDir,
         );
         $process->setTimeout((float) $this->timeout);
+
+        // composer audit exits non-zero when advisories are found; we parse stdout regardless of exit code.
         $process->run();
 
         $stdout = $process->getOutput();
         if ($stdout === '') {
-            throw new RuntimeException('composer audit produced no output');
+            $stderr = trim($process->getErrorOutput());
+            throw new RuntimeException(
+                $stderr !== ''
+                    ? 'composer audit failed: ' . $stderr
+                    : 'composer audit produced no output',
+            );
         }
 
         yield from $this->parseOutput($stdout);
