@@ -8,27 +8,21 @@ use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\CheckStatus;
 use Baspa\Larascan\Support\Finding;
 use Baspa\Larascan\Support\ScanResult;
+use Baspa\Larascan\Support\Severity;
 use Symfony\Component\Console\Output\OutputInterface;
-
-use function Termwind\render;
-use function Termwind\renderUsing;
 
 final class ConsoleReporter
 {
-    public function render(ScanResult $result, OutputInterface $output, bool $plain = false): void
+    private const BAR_WIDTH = 20;
+
+    public function render(ScanResult $result, OutputInterface $output): void
     {
-        if ($plain) {
-            $this->renderPlain($result, $output);
+        $output->writeln('');
+        $output->writeln('<fg=cyan;options=bold>larascan</> security scan');
+        $output->writeln('<fg=gray>════════════════════════════════════════════</>');
+        $output->writeln('');
 
-            return;
-        }
-
-        renderUsing($output);
-
-        // Compact header
-        render('<div class="mx-1 my-1 px-2 bg-blue-600 text-white font-bold">larascan — security scan</div>');
-
-        // Pre-index findings by checkId
+        // Pre-index findings per check
         $findingsByCheck = [];
         foreach ($result->findings() as $f) {
             $findingsByCheck[$f->checkId][] = $f;
@@ -41,118 +35,93 @@ final class ConsoleReporter
             $byCategory[$prefix][] = $checkId;
         }
 
-        // Render each category block
+        // Render per-category sections
         foreach ($byCategory as $prefix => $checkIds) {
             $cat = Category::tryFrom($prefix);
             $label = $cat?->label() ?? ucfirst($prefix);
 
-            render(sprintf(
-                '<div class="mt-1 mx-1"><span class="font-bold text-blue-400">%s</span> <span class="text-gray-500">(%s.*)</span></div>',
-                htmlspecialchars($label, ENT_QUOTES),
-                htmlspecialchars($prefix, ENT_QUOTES),
-            ));
+            $output->writeln(sprintf('  <fg=cyan;options=bold>%s</>', $label));
+            $output->writeln(sprintf('  <fg=gray>%s</>', str_repeat('─', mb_strlen($label))));
 
             foreach ($checkIds as $checkId) {
-                $status = $result->statusOf($checkId);
-                if ($status === null) {
-                    continue;
-                }
-                $findings = $findingsByCheck[$checkId] ?? [];
-                $this->renderCheckRow($checkId, $status, $findings, $result);
+                $this->renderCheckRow(
+                    $output,
+                    $checkId,
+                    $result->statusOf($checkId),
+                    $findingsByCheck[$checkId] ?? [],
+                    $result,
+                );
             }
+            $output->writeln('');
         }
 
-        // Footer / report
-        render('<div class="mt-1 mx-1 text-gray-500">──────────────────────────────────────────</div>');
-        render('<div class="mx-1 font-bold">Report</div>');
-        $counts = $result->counts();
-        $highest = $result->highestSeverity();
-        render(sprintf(
-            '<div class="mx-3">Passed <span class="text-green-500">%d</span>    '
-            .'Failed <span class="text-red-500">%d</span>    '
-            .'Skipped <span class="text-gray-500">%d</span>    '
-            .'Errored <span class="text-red-700">%d</span>    '
-            .'Highest <span class="font-bold">%s</span></div>',
-            $counts['passed'],
-            $counts['failed'],
-            $counts['skipped'],
-            $counts['errored'],
-            $highest === null ? '—' : strtoupper($highest->value),
-        ));
-        render('<div class="mx-1 text-gray-500">──────────────────────────────────────────</div>');
+        // Report Card
+        $this->renderReportCard($output, $result, $byCategory);
     }
 
     /**
      * @param  array<int, Finding>  $findings
      */
-    private function renderCheckRow(string $checkId, CheckStatus $status, array $findings, ScanResult $result): void
+    private function renderCheckRow(OutputInterface $output, string $checkId, ?CheckStatus $status, array $findings, ScanResult $result): void
     {
         switch ($status) {
             case CheckStatus::Passed:
-                render(sprintf(
-                    '<div class="mx-3"><span class="bg-green-600 text-white w-10 text-center">PASS</span> <span>%s</span></div>',
-                    htmlspecialchars($checkId, ENT_QUOTES),
-                ));
+                $output->writeln(sprintf('     <fg=green>✓</> %s', $checkId));
 
                 return;
 
             case CheckStatus::Skipped:
-                render(sprintf(
-                    '<div class="mx-3"><span class="bg-gray-500 text-white w-10 text-center">SKIP</span> <span class="text-gray-500">%s</span> <span class="text-gray-400">(%s)</span></div>',
-                    htmlspecialchars($checkId, ENT_QUOTES),
-                    htmlspecialchars($result->skipReasonOf($checkId) ?? 'unknown', ENT_QUOTES),
+                $output->writeln(sprintf(
+                    '     <fg=yellow>⊘</> %-45s <fg=gray>%s</>',
+                    $checkId,
+                    'skipped — '.($result->skipReasonOf($checkId) ?? 'unknown'),
                 ));
 
                 return;
 
             case CheckStatus::Errored:
-                render(sprintf(
-                    '<div class="mx-3"><span class="bg-red-700 text-white w-10 text-center">ERROR</span> <span>%s</span></div>'
-                    .'<div class="ml-14 text-red-400">└─ %s</div>',
-                    htmlspecialchars($checkId, ENT_QUOTES),
-                    htmlspecialchars($result->errorOf($checkId) ?? 'unknown', ENT_QUOTES),
+                $output->writeln(sprintf(
+                    '     <fg=red;options=bold>!</> %-45s <fg=red>ERROR — %s</>',
+                    $checkId,
+                    $result->errorOf($checkId) ?? 'unknown',
                 ));
 
                 return;
 
             case CheckStatus::Failed:
                 if ($findings === []) {
-                    render(sprintf(
-                        '<div class="mx-3"><span class="bg-red-500 text-white w-10 text-center">FAIL</span> <span>%s</span></div>',
-                        htmlspecialchars($checkId, ENT_QUOTES),
-                    ));
+                    $output->writeln(sprintf('     <fg=red>✗</> %-45s <fg=red>FAILED</>', $checkId));
 
                     return;
                 }
 
-                // Find highest severity among findings for the header badge
-                $highestSeverity = $findings[0]->severity;
+                // Find the highest severity for the check-level badge
+                $highest = $findings[0]->severity;
                 foreach ($findings as $f) {
-                    if ($f->severity->rank() > $highestSeverity->rank()) {
-                        $highestSeverity = $f->severity;
+                    if ($f->severity->rank() > $highest->rank()) {
+                        $highest = $f->severity;
                     }
                 }
 
-                // Check header row with highest severity badge
-                render(sprintf(
-                    '<div class="mx-3">%s <span>%s</span></div>',
-                    SeverityBadge::html($highestSeverity),
-                    htmlspecialchars($checkId, ENT_QUOTES),
+                $output->writeln(sprintf(
+                    '     %s %-45s %s',
+                    $this->statusGlyph(CheckStatus::Failed),
+                    $checkId,
+                    $this->severityTag($highest),
                 ));
 
-                // Each finding indented underneath
                 $lastKey = array_key_last($findings);
                 foreach ($findings as $i => $f) {
                     $connector = $i === $lastKey ? '└─' : '├─';
                     $location = '';
                     if ($f->file !== null) {
                         $loc = $f->file.($f->line !== null ? ':'.$f->line : '');
-                        $location = sprintf(' <span class="text-gray-500">(%s)</span>', htmlspecialchars($loc, ENT_QUOTES));
+                        $location = sprintf(' <fg=gray>(%s)</>', $loc);
                     }
-                    render(sprintf(
-                        '<div class="ml-14"><span class="text-gray-400">%s</span> <span>%s</span>%s</div>',
+                    $output->writeln(sprintf(
+                        '        <fg=gray>%s</> %s%s',
                         $connector,
-                        htmlspecialchars($f->message, ENT_QUOTES),
+                        $f->message,
                         $location,
                     ));
                 }
@@ -161,65 +130,90 @@ final class ConsoleReporter
         }
     }
 
-    private function renderPlain(ScanResult $result, OutputInterface $output): void
+    private function statusGlyph(CheckStatus $status): string
     {
-        $output->writeln('');
-        $output->writeln('<info>larascan — security scan</info>');
-        $output->writeln('');
+        return match ($status) {
+            CheckStatus::Passed => '<fg=green>✓</>',
+            CheckStatus::Failed => '<fg=red>✗</>',
+            CheckStatus::Skipped => '<fg=yellow>⊘</>',
+            CheckStatus::Errored => '<fg=red;options=bold>!</>',
+        };
+    }
 
-        $findingsByCheck = [];
-        foreach ($result->findings() as $f) {
-            $findingsByCheck[$f->checkId][] = $f;
-        }
+    private function severityTag(Severity $severity): string
+    {
+        return match ($severity) {
+            Severity::Critical => '<fg=white;bg=red;options=bold> CRITICAL </>',
+            Severity::High => '<fg=black;bg=red>   HIGH   </>',
+            Severity::Medium => '<fg=black;bg=yellow>  MEDIUM  </>',
+            Severity::Low => '<fg=white;bg=blue>   LOW    </>',
+            Severity::Info => '<fg=white;bg=gray>   INFO   </>',
+        };
+    }
 
-        foreach ($result->statuses() as $checkId => $status) {
-            $output->writeln(match ($status) {
-                CheckStatus::Passed => sprintf('  <fg=green>✓</> %-40s passed', $checkId),
-                CheckStatus::Failed => $this->renderPlainFailures($checkId, $findingsByCheck[$checkId] ?? []),
-                CheckStatus::Skipped => sprintf(
-                    '  <fg=yellow>⊘</> %-40s skipped (%s)',
-                    $checkId,
-                    $result->skipReasonOf($checkId) ?? 'unknown',
-                ),
-                CheckStatus::Errored => sprintf(
-                    '  <fg=red>!</> %-40s ERROR — %s',
-                    $checkId,
-                    $result->errorOf($checkId) ?? 'unknown',
-                ),
-            });
-        }
-
+    /**
+     * @param  array<string, array<int, string>>  $byCategory
+     */
+    private function renderReportCard(OutputInterface $output, ScanResult $result, array $byCategory): void
+    {
         $counts = $result->counts();
+        $highest = $result->highestSeverity();
+
+        $output->writeln('<fg=gray>════════════════════════════════════════════</>');
+        $output->writeln('  <fg=cyan;options=bold>Report Card</>');
+        $output->writeln('<fg=gray>════════════════════════════════════════════</>');
         $output->writeln('');
-        $output->writeln('<info>Report</info>');
+
+        // Per-category bars
+        foreach ($byCategory as $prefix => $checkIds) {
+            $cat = Category::tryFrom($prefix);
+            $label = $cat?->label() ?? ucfirst($prefix);
+
+            $catPassed = 0;
+            $catTotal = 0;
+            foreach ($checkIds as $id) {
+                $status = $result->statusOf($id);
+                if ($status === CheckStatus::Skipped) {
+                    continue;  // don't count skips toward pass percentage
+                }
+                $catTotal++;
+                if ($status === CheckStatus::Passed) {
+                    $catPassed++;
+                }
+            }
+
+            $pct = $catTotal === 0 ? 100 : (int) round(($catPassed / $catTotal) * 100);
+            $filled = (int) round(($pct / 100) * self::BAR_WIDTH);
+            $bar = str_repeat('█', $filled).str_repeat('░', self::BAR_WIDTH - $filled);
+
+            $color = $pct >= 80 ? 'green' : ($pct >= 50 ? 'yellow' : 'red');
+
+            $output->writeln(sprintf(
+                '  %-24s <fg=%s>%s</> %3d%%   <fg=gray>(%d/%d)</>',
+                $label,
+                $color,
+                $bar,
+                $pct,
+                $catPassed,
+                $catTotal,
+            ));
+        }
+
+        $output->writeln('');
         $output->writeln(sprintf(
-            '  Passed: %d    Failed: %d    Skipped: %d    Errored: %d',
+            '  Total: <fg=green>%d passed</>   <fg=red>%d failed</>   <fg=yellow>%d skipped</>   <fg=red;options=bold>%d errored</>',
             $counts['passed'],
             $counts['failed'],
             $counts['skipped'],
             $counts['errored'],
         ));
-    }
 
-    /**
-     * @param  array<int, Finding>  $findings
-     */
-    private function renderPlainFailures(string $checkId, array $findings): string
-    {
-        if ($findings === []) {
-            return sprintf('  <fg=red>✗</> %-40s FAILED', $checkId);
+        if ($highest !== null) {
+            $output->writeln(sprintf(
+                '  Highest severity: %s',
+                $this->severityTag($highest),
+            ));
         }
-
-        $lines = [];
-        foreach ($findings as $f) {
-            $lines[] = sprintf(
-                '  <fg=red>✗</> %-40s %s   %s',
-                $checkId,
-                strtoupper($f->severity->value),
-                $f->message,
-            );
-        }
-
-        return implode("\n", $lines);
+        $output->writeln('');
     }
 }

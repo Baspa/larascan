@@ -4,38 +4,23 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan\Support;
 
+use AgentDetector\AgentDetector as LaravelAgentDetector;
+
 /**
- * Detects whether larascan is running under an AI coding agent
- * (Claude Code, Cursor, Aider, etc.). When true, the CLI should default
- * to machine-readable output (JSON) instead of decorated terminal output.
+ * Detects whether larascan is running under an AI coding agent.
+ * Delegates to laravel/agent-detector for the canonical list.
  */
 final class AgentDetector
 {
-    /**
-     * Known env vars set by AI coding agents.
-     *
-     * @var array<int, string>
-     */
-    private const AGENT_ENV_VARS = [
-        'CLAUDECODE',
-        'CLAUDE_CODE',
-        'CURSOR_AGENT',
-        'AIDER_AUTO_ACCEPT',
-        'COPILOT_AGENT_ID',
-        'CONTINUE_AGENT',
-        'LARASCAN_AGENT_MODE',
-    ];
-
     public static function isAgentRun(): bool
     {
-        foreach (self::AGENT_ENV_VARS as $var) {
-            $value = getenv($var);
-            if ($value !== false && $value !== '') {
-                return true;
-            }
+        // Manual override always wins.
+        $manual = getenv('LARASCAN_AGENT_MODE');
+        if ($manual !== false && $manual !== '') {
+            return true;
         }
 
-        return false;
+        return LaravelAgentDetector::detect()->isAgent;
     }
 
     public static function stdoutIsTty(): bool

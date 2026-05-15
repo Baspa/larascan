@@ -18,7 +18,7 @@ it('renders a passed, failed and skipped row plus summary', function () {
         ->record('dependencies.npm-audit', CheckStatus::Skipped, [], 'no package.json');
 
     $output = new BufferedOutput;
-    (new ConsoleReporter)->render($result, $output, plain: true);
+    (new ConsoleReporter)->render($result, $output);
 
     $text = $output->fetch();
     expect($text)
@@ -27,13 +27,13 @@ it('renders a passed, failed and skipped row plus summary', function () {
         ->toContain('CRITICAL')
         ->toContain('SESSION_SECURE_COOKIE is false')
         ->toContain('dependencies.npm-audit')
-        ->toContain('skipped (no package.json)')
-        ->toContain('Passed: 1')
-        ->toContain('Failed: 1')
-        ->toContain('Skipped: 1');
+        ->toContain('skipped — no package.json')
+        ->toContain('1 passed')
+        ->toContain('1 failed')
+        ->toContain('1 skipped');
 });
 
-it('renders termwind output with check ids visible', function () {
+it('renders human output with check ids visible', function () {
     $result = (new ScanResult)
         ->record('config.app-debug', CheckStatus::Passed, [])
         ->record('cookies.session-secure', CheckStatus::Failed, [
@@ -97,5 +97,22 @@ it('groups checks under category headers', function () {
     $text = $output->fetch();
 
     expect($text)->toContain('Application configuration')
+        ->toContain('Cookies & sessions');
+});
+
+it('renders a report card with category bars', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->record('config.app-key', CheckStatus::Passed, [])
+        ->record('cookies.session-secure', CheckStatus::Failed, [
+            new Finding('cookies.session-secure', Severity::Critical, 'fail'),
+        ]);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->toContain('Report Card')
+        ->toContain('Application configuration')
         ->toContain('Cookies & sessions');
 });

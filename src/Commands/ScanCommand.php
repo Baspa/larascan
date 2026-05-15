@@ -20,7 +20,7 @@ class ScanCommand extends Command
         {--check=* : Filter checks by ID pattern (e.g. cookies.*) — repeatable}
         {--category= : Filter checks by category}
         {--ignore-errors : Force exit 0 even when checks error}
-        {--format= : Output format: termwind (default for tty), plain, or json (default for agents)}';
+        {--format= : Output format: human (default) or json (auto-selected for agents)}';
 
     protected $description = 'Run larascan security scan';
 
@@ -68,11 +68,11 @@ class ScanCommand extends Command
 
         $result = $larascan->scan($options);
 
-        match ($format) {
-            'json' => (new JsonReporter)->render($result, $this->output),
-            'plain' => $reporter->render($result, $this->output, plain: true),
-            default => $reporter->render($result, $this->output, plain: false),
-        };
+        if ($format === 'json') {
+            (new JsonReporter)->render($result, $this->output);
+        } else {
+            $reporter->render($result, $this->output);
+        }
 
         $counts = $result->counts();
         if ($counts['errored'] > 0 && ! $this->option('ignore-errors')) {
@@ -92,10 +92,7 @@ class ScanCommand extends Command
         if (AgentDetector::isAgentRun()) {
             return 'json';
         }
-        if (! AgentDetector::stdoutIsTty()) {
-            return 'plain';
-        }
 
-        return 'termwind';
+        return 'human';
     }
 }

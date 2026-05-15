@@ -5,15 +5,30 @@ declare(strict_types=1);
 /**
  * Clear AI agent env vars around each test so the auto-format detection
  * doesn't switch to JSON when the suite runs under Claude Code / Cursor /
- * Aider / etc. Tests below assume the default termwind/plain output.
+ * Aider / etc. Tests below assume the default human output.
  */
 $AGENT_VARS = [
+    'AI_AGENT',
     'CLAUDECODE',
     'CLAUDE_CODE',
+    'CLAUDE_CODE_IS_COWORK',
     'CURSOR_AGENT',
-    'AIDER_AUTO_ACCEPT',
-    'COPILOT_AGENT_ID',
-    'CONTINUE_AGENT',
+    'GEMINI_CLI',
+    'CODEX_SANDBOX',
+    'CODEX_CI',
+    'CODEX_THREAD_ID',
+    'AUGMENT_AGENT',
+    'OPENCODE_CLIENT',
+    'OPENCODE',
+    'AMP_CURRENT_THREAD_ID',
+    'REPL_ID',
+    'COPILOT_MODEL',
+    'COPILOT_ALLOW_ALL',
+    'COPILOT_GITHUB_TOKEN',
+    'COPILOT_CLI',
+    'ANTIGRAVITY_AGENT',
+    'PI_CODING_AGENT',
+    'KIRO_AGENT_PATH',
     'LARASCAN_AGENT_MODE',
 ];
 
@@ -57,8 +72,8 @@ it('runs the larascan command and shows the report', function () {
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
-        ->expectsOutputToContain('larascan — security scan')
-        ->expectsOutputToContain('Report')
+        ->expectsOutputToContain('larascan')
+        ->expectsOutputToContain('Report Card')
         ->assertExitCode(0);
 });
 
@@ -80,7 +95,7 @@ it('honors --fail-on for exit code', function () {
 
 it('filters checks via --check pattern', function () {
     $this->artisan('larascan --check=does.not.exist')
-        ->expectsOutputToContain('larascan — security scan')
+        ->expectsOutputToContain('larascan')
         ->assertExitCode(0);
 });
 
@@ -112,7 +127,7 @@ it('accepts a valid --category filter', function () {
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --category=config')
-        ->expectsOutputToContain('larascan — security scan')
+        ->expectsOutputToContain('larascan')
         ->assertExitCode(0);
 });
 
@@ -145,30 +160,5 @@ it('renders JSON output when --format=json', function () {
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --format=json')
-        ->assertExitCode(0);
-});
-
-it('renders plain output when --format=plain', function () {
-    // Clean prod setup so no shipped check fires above the default fail_on=high.
-    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
-    config()->set('app.env', 'production');
-    config()->set('app.debug', false);
-    config()->set('session.secure', true);
-    config()->set('session.http_only', true);
-    config()->set('session.same_site', 'lax');
-    config()->set('session.encrypt', true);
-    config()->set('session.lifetime', 120);
-    $checks = config('larascan.checks', []);
-    $checks['headers.hsts'] = ['enabled' => false];
-    $checks['headers.x-content-type-options'] = ['enabled' => false];
-    $checks['headers.x-frame-options'] = ['enabled' => false];
-    $checks['php.display-errors'] = ['enabled' => false];
-    $checks['csrf.middleware-disabled'] = ['enabled' => false];
-    $checks['injection.host-header'] = ['enabled' => false];
-    config()->set('larascan.checks', $checks);
-
-    $this->artisan('larascan --format=plain')
-        ->expectsOutputToContain('larascan — security scan')
-        ->expectsOutputToContain('Report')
         ->assertExitCode(0);
 });

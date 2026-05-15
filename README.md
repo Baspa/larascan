@@ -28,11 +28,10 @@ php artisan larascan:list             # list registered checks
 
 | Flag | Default for | Description |
 |---|---|---|
-| `--format=termwind` | TTY | Colored, grouped output. Best for humans. |
-| `--format=plain` | Non-TTY (pipe) | Plain text. Best for logs. |
-| `--format=json` | AI agents | Structured JSON. Best for Claude Code / Cursor / scripts. |
+| (none) | TTY / humans | Colored Enlightn-style output: categorized checks with a report card at the end |
+| `--format=json` | AI agents | Structured JSON. Auto-selected when `laravel/agent-detector` flags the run as an agent. |
 
-When an AI agent runs larascan (detected via env vars like `CLAUDECODE`, `CURSOR_AGENT`), JSON is the default. Force it with `LARASCAN_AGENT_MODE=1`.
+When an AI agent runs larascan (detected via `laravel/agent-detector` — Claude Code, Cursor, Codex, Gemini CLI, Copilot, etc.), JSON is the default. Force it with `LARASCAN_AGENT_MODE=1`.
 
 After installing, the following checks are available by default:
 

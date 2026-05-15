@@ -5,17 +5,33 @@ declare(strict_types=1);
 use Baspa\Larascan\Support\AgentDetector;
 
 /**
- * The env vars listed in AgentDetector. We snapshot and restore them around
- * each test so that running under e.g. Claude Code (which sets CLAUDECODE=1)
- * doesn't bleed into the assertions below.
+ * The env vars laravel/agent-detector consults (plus our manual override).
+ * We snapshot and restore them around each test so that running under e.g.
+ * Claude Code (which sets CLAUDECODE=1) doesn't bleed into the assertions
+ * below.
  */
 $AGENT_VARS = [
+    'AI_AGENT',
     'CLAUDECODE',
     'CLAUDE_CODE',
+    'CLAUDE_CODE_IS_COWORK',
     'CURSOR_AGENT',
-    'AIDER_AUTO_ACCEPT',
-    'COPILOT_AGENT_ID',
-    'CONTINUE_AGENT',
+    'GEMINI_CLI',
+    'CODEX_SANDBOX',
+    'CODEX_CI',
+    'CODEX_THREAD_ID',
+    'AUGMENT_AGENT',
+    'OPENCODE_CLIENT',
+    'OPENCODE',
+    'AMP_CURRENT_THREAD_ID',
+    'REPL_ID',
+    'COPILOT_MODEL',
+    'COPILOT_ALLOW_ALL',
+    'COPILOT_GITHUB_TOKEN',
+    'COPILOT_CLI',
+    'ANTIGRAVITY_AGENT',
+    'PI_CODING_AGENT',
+    'KIRO_AGENT_PATH',
     'LARASCAN_AGENT_MODE',
 ];
 
