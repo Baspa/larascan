@@ -20,6 +20,7 @@ return [
         'cookies.session-encrypt' => ['enabled' => true],
         'cookies.session-lifetime' => ['enabled' => true],
         'cookies.encrypt-middleware' => ['enabled' => true],
+        'cookies.encrypt-excludes' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],

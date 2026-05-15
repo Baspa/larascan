@@ -13,6 +13,7 @@ use Baspa\Larascan\Checks\Config\EnvExampleSyncCheck;
 use Baspa\Larascan\Checks\Config\EnvNotCommittedCheck;
 use Baspa\Larascan\Checks\Config\LogLevelCheck;
 use Baspa\Larascan\Checks\Config\TrustedProxiesCheck;
+use Baspa\Larascan\Checks\Cookies\EncryptCookiesExcludesCheck;
 use Baspa\Larascan\Checks\Cookies\EncryptCookiesMiddlewareCheck;
 use Baspa\Larascan\Checks\Cookies\SessionEncryptCheck;
 use Baspa\Larascan\Checks\Cookies\SessionHttpOnlyCheck;
@@ -59,6 +60,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             SessionEncryptCheck::class,
             SessionLifetimeCheck::class,
             EncryptCookiesMiddlewareCheck::class,
+            EncryptCookiesExcludesCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
