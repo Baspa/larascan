@@ -8,6 +8,7 @@ return [
     'checks' => [
         'config.app-key' => ['enabled' => true],
         'config.app-env' => ['enabled' => true],
+        'config.env-not-committed' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],

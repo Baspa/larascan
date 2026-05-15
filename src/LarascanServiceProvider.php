@@ -7,6 +7,7 @@ namespace Baspa\Larascan;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
+use Baspa\Larascan\Checks\Config\EnvNotCommittedCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Commands\InstallCommand;
@@ -34,6 +35,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             AppDebugCheck::class,
             AppKeyCheck::class,
             AppEnvCheck::class,
+            EnvNotCommittedCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -52,6 +54,10 @@ class LarascanServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->bindRunners();
+
+        $this->app->bind(EnvNotCommittedCheck::class, fn (): EnvNotCommittedCheck => new EnvNotCommittedCheck(
+            basePath: $this->app->basePath(),
+        ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
             /** @var array<string, array{enabled?: bool}> $config */
