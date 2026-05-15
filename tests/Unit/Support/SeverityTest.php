@@ -32,3 +32,14 @@ it('derives severity from CVSS score', function () {
         ->and(Severity::fromCvssScore(2.0))->toBe(Severity::Low)
         ->and(Severity::fromCvssScore(0.0))->toBe(Severity::Info);
 });
+
+it('downgrades to Info when env is not production', function () {
+    expect(Severity::Critical->downgradeIfNotProduction('local'))->toBe(Severity::Info)
+        ->and(Severity::High->downgradeIfNotProduction('testing'))->toBe(Severity::Info)
+        ->and(Severity::Medium->downgradeIfNotProduction('staging'))->toBe(Severity::Info);
+});
+
+it('keeps the original severity when env is production', function () {
+    expect(Severity::Critical->downgradeIfNotProduction('production'))->toBe(Severity::Critical)
+        ->and(Severity::High->downgradeIfNotProduction('production'))->toBe(Severity::High);
+});

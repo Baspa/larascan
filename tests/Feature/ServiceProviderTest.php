@@ -30,3 +30,9 @@ it('uses the configured composer binary in the bound runner', function () {
     $prop = $reflection->getProperty('binary');
     expect($prop->getValue($runner))->toBe('/opt/bin/composer-custom');
 });
+
+it('registers exactly 18 checks after Phase 4', function () {
+    /** @var CheckRegistry $registry */
+    $registry = $this->app->make(CheckRegistry::class);
+    expect(count($registry->all()))->toBe(18);
+});

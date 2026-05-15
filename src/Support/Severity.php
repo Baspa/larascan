@@ -38,4 +38,9 @@ enum Severity: string
             default => self::Info,
         };
     }
+
+    public function downgradeIfNotProduction(string $envValue): self
+    {
+        return $envValue === 'production' ? $this : self::Info;
+    }
 }

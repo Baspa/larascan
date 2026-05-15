@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Baspa\Larascan\Checks\Config;
+namespace Baspa\Larascan\Checks\Cookies;
 
 use Baspa\Larascan\Support\AbstractCheck;
 use Baspa\Larascan\Support\Category;
@@ -11,22 +11,20 @@ use Baspa\Larascan\Support\Severity;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 
-final class AppEnvCheck extends AbstractCheck
+final class SessionHttpOnlyCheck extends AbstractCheck
 {
-    private const DEV_ENVS = ['local', 'testing', 'dev', 'development'];
-
     public function __construct(
         private readonly Application $app,
     ) {}
 
     public function id(): string
     {
-        return 'config.app-env';
+        return 'cookies.session-http-only';
     }
 
     public function category(): Category
     {
-        return Category::Config;
+        return Category::Cookies;
     }
 
     public function severity(): Severity
@@ -36,7 +34,7 @@ final class AppEnvCheck extends AbstractCheck
 
     public function name(): string
     {
-        return 'APP_ENV must not be a development value in production';
+        return 'SESSION_HTTP_ONLY must be true';
     }
 
     /**
@@ -46,16 +44,15 @@ final class AppEnvCheck extends AbstractCheck
     {
         /** @var Repository $config */
         $config = $this->app->make('config');
-        $env = $config->get('app.env');
 
-        if (! is_string($env) || ! in_array(strtolower($env), self::DEV_ENVS, true)) {
+        if (filter_var($config->get('session.http_only'), FILTER_VALIDATE_BOOLEAN)) {
             return;
         }
 
         yield new Finding(
             checkId: $this->id(),
-            severity: $this->severity()->downgradeIfNotProduction((string) $env),
-            message: "APP_ENV is '{$env}' — leaks development-mode behavior in production.",
+            severity: $this->severity(),
+            message: 'session.http_only is false or missing — JavaScript can read session cookies, enabling XSS-driven session theft. Set HttpOnly via SESSION_HTTP_ONLY=true.',
         );
     }
 }

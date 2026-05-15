@@ -31,12 +31,23 @@ it('passes when debug_blacklist contains non-empty entries', function () {
     expect(iterator_to_array((new DebugBlacklistCheck($this->app))->run()))->toBeEmpty();
 });
 
-it('fails when debug_blacklist is empty', function () {
+it('fails with downgraded severity in non-production env', function () {
     config()->set('app.debug', true);
+    config()->set('app.env', 'testing');
     config()->set('app.debug_blacklist', []);
 
     $findings = iterator_to_array((new DebugBlacklistCheck($this->app))->run());
     expect($findings)->toHaveCount(1)
-        ->and($findings[0]->severity)->toBe(Severity::Medium)
+        ->and($findings[0]->severity)->toBe(Severity::Info)
         ->and($findings[0]->message)->toContain('debug');
+});
+
+it('fails with declared severity when env is production', function () {
+    config()->set('app.debug', true);
+    config()->set('app.env', 'production');
+    config()->set('app.debug_blacklist', []);
+
+    $findings = iterator_to_array((new DebugBlacklistCheck($this->app))->run());
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->severity)->toBe(Severity::Medium);
 });

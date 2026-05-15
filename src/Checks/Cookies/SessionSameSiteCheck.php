@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Baspa\Larascan\Checks\Config;
+namespace Baspa\Larascan\Checks\Cookies;
 
 use Baspa\Larascan\Support\AbstractCheck;
 use Baspa\Larascan\Support\Category;
@@ -11,9 +11,9 @@ use Baspa\Larascan\Support\Severity;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 
-final class AppEnvCheck extends AbstractCheck
+final class SessionSameSiteCheck extends AbstractCheck
 {
-    private const DEV_ENVS = ['local', 'testing', 'dev', 'development'];
+    private const ACCEPTABLE = ['lax', 'strict'];
 
     public function __construct(
         private readonly Application $app,
@@ -21,12 +21,12 @@ final class AppEnvCheck extends AbstractCheck
 
     public function id(): string
     {
-        return 'config.app-env';
+        return 'cookies.session-same-site';
     }
 
     public function category(): Category
     {
-        return Category::Config;
+        return Category::Cookies;
     }
 
     public function severity(): Severity
@@ -36,7 +36,7 @@ final class AppEnvCheck extends AbstractCheck
 
     public function name(): string
     {
-        return 'APP_ENV must not be a development value in production';
+        return 'session.same_site must be lax or strict';
     }
 
     /**
@@ -46,16 +46,16 @@ final class AppEnvCheck extends AbstractCheck
     {
         /** @var Repository $config */
         $config = $this->app->make('config');
-        $env = $config->get('app.env');
 
-        if (! is_string($env) || ! in_array(strtolower($env), self::DEV_ENVS, true)) {
+        $value = $config->get('session.same_site');
+        if (is_string($value) && in_array(strtolower($value), self::ACCEPTABLE, true)) {
             return;
         }
 
         yield new Finding(
             checkId: $this->id(),
-            severity: $this->severity()->downgradeIfNotProduction((string) $env),
-            message: "APP_ENV is '{$env}' — leaks development-mode behavior in production.",
+            severity: $this->severity(),
+            message: 'session.same_site must be "lax" or "strict" — "none" or unset leaves the app vulnerable to CSRF via cross-site cookie attachment.',
         );
     }
 }

@@ -30,11 +30,12 @@ it('fails when APP_ENV is local', function () {
     config()->set('app.env', 'local');
     $findings = iterator_to_array((new AppEnvCheck($this->app))->run());
     expect($findings)->toHaveCount(1)
-        ->and($findings[0]->severity)->toBe(Severity::High);
+        ->and($findings[0]->severity)->toBe(Severity::Info);
 });
 
 it('fails when APP_ENV is testing', function () {
     config()->set('app.env', 'testing');
     $findings = iterator_to_array((new AppEnvCheck($this->app))->run());
-    expect($findings)->toHaveCount(1);
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->severity)->toBe(Severity::Info);
 });

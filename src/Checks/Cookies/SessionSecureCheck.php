@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Baspa\Larascan\Checks\Config;
+namespace Baspa\Larascan\Checks\Cookies;
 
 use Baspa\Larascan\Support\AbstractCheck;
 use Baspa\Larascan\Support\Category;
@@ -11,7 +11,7 @@ use Baspa\Larascan\Support\Severity;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 
-final class DebugBlacklistCheck extends AbstractCheck
+final class SessionSecureCheck extends AbstractCheck
 {
     public function __construct(
         private readonly Application $app,
@@ -19,30 +19,22 @@ final class DebugBlacklistCheck extends AbstractCheck
 
     public function id(): string
     {
-        return 'config.debug-blacklist';
+        return 'cookies.session-secure';
     }
 
     public function category(): Category
     {
-        return Category::Config;
+        return Category::Cookies;
     }
 
     public function severity(): Severity
     {
-        return Severity::Medium;
+        return Severity::Critical;
     }
 
     public function name(): string
     {
-        return 'app.debug_blacklist must redact sensitive env keys when debug is on';
-    }
-
-    public function isApplicable(): bool
-    {
-        /** @var Repository $config */
-        $config = $this->app->make('config');
-
-        return (bool) filter_var($config->get('app.debug'), FILTER_VALIDATE_BOOLEAN);
+        return 'SESSION_SECURE_COOKIE must be true in production';
     }
 
     /**
@@ -53,10 +45,7 @@ final class DebugBlacklistCheck extends AbstractCheck
         /** @var Repository $config */
         $config = $this->app->make('config');
 
-        $blacklist = $config->get('app.debug_blacklist', []);
-        $hasEntries = is_array($blacklist) && array_filter($blacklist, fn ($v) => is_array($v) && $v !== []) !== [];
-
-        if ($hasEntries) {
+        if (filter_var($config->get('session.secure'), FILTER_VALIDATE_BOOLEAN)) {
             return;
         }
 
@@ -65,7 +54,7 @@ final class DebugBlacklistCheck extends AbstractCheck
         yield new Finding(
             checkId: $this->id(),
             severity: $this->severity()->downgradeIfNotProduction($env),
-            message: 'app.debug_blacklist is empty — Whoops debug pages will expose all env, server and request data when an exception fires.',
+            message: 'SESSION_SECURE_COOKIE is false — sessions cookies will be sent over HTTP and can be hijacked on shared networks.',
         );
     }
 }
