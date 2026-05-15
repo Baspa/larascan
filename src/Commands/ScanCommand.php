@@ -23,9 +23,14 @@ class ScanCommand extends Command
 
     public function handle(Larascan $larascan, ConsoleReporter $reporter): int
     {
-        $failOnRaw = $this->option('fail-on')
-            ?? (string) config('larascan.fail_on', 'high');
-        $failOn = Severity::tryFrom((string) $failOnRaw);
+        $failOnOption = $this->option('fail-on');
+        $failOnConfig = config('larascan.fail_on');
+        $failOnRaw = match (true) {
+            is_string($failOnOption) && $failOnOption !== '' => $failOnOption,
+            is_string($failOnConfig) && $failOnConfig !== '' => $failOnConfig,
+            default => 'high',
+        };
+        $failOn = Severity::tryFrom($failOnRaw);
         if ($failOn === null) {
             $this->error("Invalid --fail-on value: {$failOnRaw}");
 
