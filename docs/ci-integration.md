@@ -31,3 +31,33 @@ This writes `.github/workflows/larascan.yml`. The workflow:
 ## Other CI systems
 
 The artisan command is environment-agnostic. For GitLab/Bitbucket/CircleCI, just run `php artisan larascan --fail-on=high` in a job after `composer install`.
+
+## AI agent integration
+
+larascan auto-detects when an AI agent runs it and emits JSON for easier parsing. To force JSON manually:
+
+```bash
+php artisan larascan --format=json
+```
+
+The JSON shape:
+
+```json
+{
+  "version": "1.0",
+  "summary": {
+    "passed": 24, "failed": 3, "skipped": 2, "errored": 0,
+    "highest_severity": "critical"
+  },
+  "checks": [
+    {
+      "id": "cookies.session-secure",
+      "category": "cookies",
+      "status": "failed",
+      "findings": [
+        {"severity": "critical", "message": "...", "file": "app/...", "line": 42}
+      ]
+    }
+  ]
+}
+```

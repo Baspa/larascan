@@ -24,6 +24,16 @@ php artisan larascan --fail-on=high   # CI threshold
 php artisan larascan:list             # list registered checks
 ```
 
+### Output formats
+
+| Flag | Default for | Description |
+|---|---|---|
+| `--format=termwind` | TTY | Colored, grouped output. Best for humans. |
+| `--format=plain` | Non-TTY (pipe) | Plain text. Best for logs. |
+| `--format=json` | AI agents | Structured JSON. Best for Claude Code / Cursor / scripts. |
+
+When an AI agent runs larascan (detected via env vars like `CLAUDECODE`, `CURSOR_AGENT`), JSON is the default. Force it with `LARASCAN_AGENT_MODE=1`.
+
 After installing, the following checks are available by default:
 
 **Config (`config.*`)**

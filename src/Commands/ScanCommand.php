@@ -6,6 +6,8 @@ namespace Baspa\Larascan\Commands;
 
 use Baspa\Larascan\Larascan;
 use Baspa\Larascan\Reporters\ConsoleReporter;
+use Baspa\Larascan\Reporters\JsonReporter;
+use Baspa\Larascan\Support\AgentDetector;
 use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\ScanOptions;
 use Baspa\Larascan\Support\Severity;
@@ -18,7 +20,7 @@ class ScanCommand extends Command
         {--check=* : Filter checks by ID pattern (e.g. cookies.*) — repeatable}
         {--category= : Filter checks by category}
         {--ignore-errors : Force exit 0 even when checks error}
-        {--format= : Output format: termwind (default) or plain}';
+        {--format= : Output format: termwind (default for tty), plain, or json (default for agents)}';
 
     protected $description = 'Run larascan security scan';
 
@@ -58,12 +60,19 @@ class ScanCommand extends Command
             category: $category,
         );
 
+        // Resolve format
+        $formatOption = $this->option('format');
+        $format = is_string($formatOption) && $formatOption !== ''
+            ? strtolower($formatOption)
+            : $this->autoFormat();
+
         $result = $larascan->scan($options);
-        $reporter->render(
-            $result,
-            $this->output,
-            plain: $this->option('format') === 'plain',
-        );
+
+        match ($format) {
+            'json' => (new JsonReporter)->render($result, $this->output),
+            'plain' => $reporter->render($result, $this->output, plain: true),
+            default => $reporter->render($result, $this->output, plain: false),
+        };
 
         $counts = $result->counts();
         if ($counts['errored'] > 0 && ! $this->option('ignore-errors')) {
@@ -76,5 +85,17 @@ class ScanCommand extends Command
         }
 
         return 0;
+    }
+
+    private function autoFormat(): string
+    {
+        if (AgentDetector::isAgentRun()) {
+            return 'json';
+        }
+        if (! AgentDetector::stdoutIsTty()) {
+            return 'plain';
+        }
+
+        return 'termwind';
     }
 }

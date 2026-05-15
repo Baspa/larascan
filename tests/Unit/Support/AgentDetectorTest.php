@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+use Baspa\Larascan\Support\AgentDetector;
+
+/**
+ * The env vars listed in AgentDetector. We snapshot and restore them around
+ * each test so that running under e.g. Claude Code (which sets CLAUDECODE=1)
+ * doesn't bleed into the assertions below.
+ */
+$AGENT_VARS = [
+    'CLAUDECODE',
+    'CLAUDE_CODE',
+    'CURSOR_AGENT',
+    'AIDER_AUTO_ACCEPT',
+    'COPILOT_AGENT_ID',
+    'CONTINUE_AGENT',
+    'LARASCAN_AGENT_MODE',
+];
+
+beforeEach(function () use ($AGENT_VARS) {
+    $this->originalAgentEnv = [];
+    foreach ($AGENT_VARS as $var) {
+        $this->originalAgentEnv[$var] = getenv($var);
+        putenv($var);
+    }
+});
+
+afterEach(function () use ($AGENT_VARS) {
+    foreach ($AGENT_VARS as $var) {
+        $original = $this->originalAgentEnv[$var] ?? false;
+        if ($original === false) {
+            putenv($var);
+        } else {
+            putenv("{$var}={$original}");
+        }
+    }
+});
+
+it('returns false when no agent env var is set', function () {
+    expect(AgentDetector::isAgentRun())->toBeFalse();
+});
+
+it('returns true when CLAUDECODE is set', function () {
+    putenv('CLAUDECODE=1');
+    expect(AgentDetector::isAgentRun())->toBeTrue();
+});
+
+it('returns true when LARASCAN_AGENT_MODE is set (manual override)', function () {
+    putenv('LARASCAN_AGENT_MODE=1');
+    expect(AgentDetector::isAgentRun())->toBeTrue();
+});
