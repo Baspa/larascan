@@ -26,10 +26,18 @@ use Baspa\Larascan\Checks\Cookies\SessionHttpOnlyCheck;
 use Baspa\Larascan\Checks\Cookies\SessionLifetimeCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
+use Baspa\Larascan\Checks\Crypto\CipherNotPinnedCheck;
+use Baspa\Larascan\Checks\Crypto\HardcodedSecretCheck;
+use Baspa\Larascan\Checks\Crypto\WeakHashCheck;
+use Baspa\Larascan\Checks\Crypto\WeakRandomCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
+use Baspa\Larascan\Checks\Files\PathTraversalCheck;
+use Baspa\Larascan\Checks\Files\PublicExecutableUploadsCheck;
+use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
+use Baspa\Larascan\Checks\Files\UploadMimesValidationCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
 use Baspa\Larascan\Checks\Headers\CspDefinedCheck;
 use Baspa\Larascan\Checks\Headers\CspUnsafeInlineCheck;
@@ -37,6 +45,11 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Injection\CommandInjectionCheck;
+use Baspa\Larascan\Checks\Injection\HostHeaderCheck;
+use Baspa\Larascan\Checks\Injection\OpenRedirectCheck;
+use Baspa\Larascan\Checks\Injection\ProcessShellCheck;
+use Baspa\Larascan\Checks\Injection\UnserializeCheck;
 use Baspa\Larascan\Checks\Logging\CustomErrorPagesCheck;
 use Baspa\Larascan\Checks\Logging\DdDumpDebugCheck;
 use Baspa\Larascan\Checks\Logging\SensitiveInLogContextCheck;
@@ -52,6 +65,9 @@ use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
+use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
+use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
+use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -121,6 +137,22 @@ class LarascanServiceProvider extends PackageServiceProvider
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
             ApiAbilityScopingCheck::class,
+            WeakHashCheck::class,
+            WeakRandomCheck::class,
+            CipherNotPinnedCheck::class,
+            HardcodedSecretCheck::class,
+            CommandInjectionCheck::class,
+            ProcessShellCheck::class,
+            UnserializeCheck::class,
+            OpenRedirectCheck::class,
+            HostHeaderCheck::class,
+            BladeUnescapedCheck::class,
+            HtmlStringCheck::class,
+            UrlJavascriptProtocolCheck::class,
+            PathTraversalCheck::class,
+            UnlinkUserInputCheck::class,
+            UploadMimesValidationCheck::class,
+            PublicExecutableUploadsCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -216,6 +248,79 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(WeakHashCheck::class, fn (): WeakHashCheck => new WeakHashCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(WeakRandomCheck::class, fn (): WeakRandomCheck => new WeakRandomCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(CipherNotPinnedCheck::class, fn (): CipherNotPinnedCheck => new CipherNotPinnedCheck(
+            configPath: $this->app->configPath(),
+        ));
+
+        $this->app->bind(HardcodedSecretCheck::class, fn (): HardcodedSecretCheck => new HardcodedSecretCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(CommandInjectionCheck::class, fn (): CommandInjectionCheck => new CommandInjectionCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ProcessShellCheck::class, fn (): ProcessShellCheck => new ProcessShellCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnserializeCheck::class, fn (): UnserializeCheck => new UnserializeCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(OpenRedirectCheck::class, fn (): OpenRedirectCheck => new OpenRedirectCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(BladeUnescapedCheck::class, fn (): BladeUnescapedCheck => new BladeUnescapedCheck(
+            viewsPath: $this->app->basePath('resources/views'),
+        ));
+
+        $this->app->bind(HtmlStringCheck::class, fn (): HtmlStringCheck => new HtmlStringCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UrlJavascriptProtocolCheck::class, fn (): UrlJavascriptProtocolCheck => new UrlJavascriptProtocolCheck(
+            viewsPath: $this->app->basePath('resources/views'),
+        ));
+
+        $this->app->bind(PathTraversalCheck::class, fn (): PathTraversalCheck => new PathTraversalCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnlinkUserInputCheck::class, fn (): UnlinkUserInputCheck => new UnlinkUserInputCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UploadMimesValidationCheck::class, fn (): UploadMimesValidationCheck => new UploadMimesValidationCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(PublicExecutableUploadsCheck::class, fn (): PublicExecutableUploadsCheck => new PublicExecutableUploadsCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+            publicPath: $this->app->publicPath(),
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
