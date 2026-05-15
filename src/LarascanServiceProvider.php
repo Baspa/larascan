@@ -45,6 +45,9 @@ use Baspa\Larascan\Checks\Php\DisplayErrorsCheck;
 use Baspa\Larascan\Checks\Php\ExposePhpCheck;
 use Baspa\Larascan\Checks\Php\PhpinfoCheck;
 use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
+use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
+use Baspa\Larascan\Checks\Repo\DependabotCheck;
+use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -107,6 +110,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             DdDumpDebugCheck::class,
             CustomErrorPagesCheck::class,
             SensitiveInLogContextCheck::class,
+            DependabotCheck::class,
+            GitleaksHistoryCheck::class,
+            DebugToolbarsCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -180,6 +186,18 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(SensitiveInLogContextCheck::class, fn (): SensitiveInLogContextCheck => new SensitiveInLogContextCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(DependabotCheck::class, fn (): DependabotCheck => new DependabotCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(GitleaksHistoryCheck::class, fn (): GitleaksHistoryCheck => new GitleaksHistoryCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(DebugToolbarsCheck::class, fn (): DebugToolbarsCheck => new DebugToolbarsCheck(
+            basePath: $this->app->basePath(),
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
