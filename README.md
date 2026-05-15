@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — Phase 6 (Auth, CSRF, Models, PHP, Logging, Repo checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
+> **Status:** Pre-1.0 — Phase 7 (AST-based XSS / Files / Injection / Crypto checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
 
 ## Install
 
@@ -89,6 +89,30 @@ After installing, the following checks are available by default:
 - `repo.dependabot` — .github/dependabot.yml should exist for automated dep updates
 - `repo.gitleaks-history` — No high-entropy secrets in git history (last 100 commits)
 - `repo.debug-toolbars` — Debug packages (debugbar, telescope) must be in require-dev only
+
+**XSS (`xss.*`)**
+- `xss.blade-unescaped` — Blade {!! $var !!} with PHP variables risks XSS
+- `xss.html-string` — Illuminate\Support\HtmlString produces unescaped HTML
+- `xss.url-javascript-protocol` — javascript: URLs in href/src are XSS sinks
+
+**Files (`files.*`)**
+- `files.path-traversal` — Storage/File operations with user-controlled paths
+- `files.unlink-user-input` — unlink()/rmdir() in application code
+- `files.upload-mimes-validation` — Validation by extension rather than MIME
+- `files.public-executable-uploads` — Upload rules allowing .php/.phtml/.phar
+
+**Injection (`injection.*`)**
+- `injection.command` — exec/shell_exec/system/passthru calls
+- `injection.process-shell` — Process::fromShellCommandline() usage
+- `injection.unserialize` — unserialize() of any input
+- `injection.open-redirect` — redirect() with user-controlled URL
+- `injection.host-header` — app.url missing or pointing to localhost
+
+**Crypto & secrets (`crypto.*`)**
+- `crypto.weak-hash` — md5/sha1 for security purposes
+- `crypto.weak-random` — rand/mt_rand/uniqid for security tokens
+- `crypto.cipher-not-pinned` — config/app.php does not pin the cipher
+- `crypto.hardcoded-secret` — High-entropy secrets or known token patterns in code
 
 **Dependencies (`dependencies.*`)**
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
