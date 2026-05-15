@@ -4,9 +4,47 @@
 
 # LaraScan
 
-Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
+[![Latest Version](https://img.shields.io/packagist/v/baspa/larascan.svg?style=flat-square)](https://packagist.org/packages/baspa/larascan)
+[![Tests](https://img.shields.io/github/actions/workflow/status/baspa/larascan/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/baspa/larascan/actions/workflows/tests.yml)
+[![PHPStan](https://img.shields.io/github/actions/workflow/status/baspa/larascan/phpstan.yml?branch=main&label=phpstan%20level%208&style=flat-square)](https://github.com/baspa/larascan/actions/workflows/phpstan.yml)
+[![Downloads](https://img.shields.io/packagist/dt/baspa/larascan.svg?style=flat-square)](https://packagist.org/packages/baspa/larascan)
+[![License](https://img.shields.io/packagist/l/baspa/larascan.svg?style=flat-square)](LICENSE.md)
 
-> **Status:** v1.0 ready — 70 checks across 15 categories, PHPStan level 8, supports Laravel 10/11/12/13. See [CHANGELOG.md](CHANGELOG.md) for the v1.0 release notes.
+Security-focused static analysis for Laravel applications. One artisan command, **70 checks** across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
+
+> **Why LaraScan?** Most Laravel security issues come from misconfiguration or forgotten dev settings in production — debug on, secure cookies off, hardcoded API keys in code. LaraScan scans for them in one shot, AST-based where it matters, with sane defaults and a clean CI workflow.
+
+## Example
+
+```
+larascan security scan
+════════════════════════════════════════════
+
+  Application configuration
+  ─────────────────────────
+     ✗ config.app-env
+        └─ INFO     APP_ENV is 'local' — leaks development-mode behavior in production.
+     ✗ config.env-example-sync
+        ├─ LOW      Keys present in .env but missing from .env.example: MISTRAL_API_KEY
+        └─ LOW      Keys present in .env.example but missing from .env: RESPONSE_CACHE_*
+
+  Cookies & sessions
+  ──────────────────
+     ✗ cookies.session-encrypt
+        └─ HIGH     session.encrypt is false — session payloads are stored in plaintext.
+
+════════════════════════════════════════════
+  Report Card
+════════════════════════════════════════════
+
+  Application configuration ███████████░░░░░░░░░  57%   (4/7)
+  Cookies & sessions       ██████████████░░░░░░  71%   (5/7)
+  HTTP headers             ████░░░░░░░░░░░░░░░░  20%   (1/5)
+  ...
+
+  Total: 45 passed   19 failed   6 skipped   0 errored
+  Highest severity: CRITICAL
+```
 
 ## Install
 
@@ -15,28 +53,56 @@ composer require baspa/larascan --dev
 php artisan larascan:install
 ```
 
+The install command publishes `config/larascan.php` and optionally `.github/workflows/larascan.yml` (CI workflow stub).
+
 ## Usage
 
 ```bash
 php artisan larascan                  # run all enabled checks
+php artisan larascan --only-failed    # hide passed + skipped
 php artisan larascan --category=config
-php artisan larascan --fail-on=high   # CI threshold
-php artisan larascan --only-failed    # hide passed + skipped, show only findings
-php artisan larascan:list             # list registered checks
+php artisan larascan --fail-on=high   # CI threshold (exit 1 on findings ≥ high)
+php artisan larascan:list             # list all registered checks
 ```
 
 ### Output formats
 
 | Flag | Default for | Description |
 |---|---|---|
-| (none) | TTY / humans | Colored Enlightn-style output: categorized checks with a report card at the end |
-| `--format=json` | AI agents | Structured JSON. Auto-selected when `laravel/agent-detector` flags the run as an agent. |
+| (none) | TTY / humans | Categorized output with a Report Card at the end |
+| `--format=json` | AI agents | Structured JSON. Auto-selected when [`laravel/agent-detector`](https://github.com/laravel/agent-detector) flags the run as an agent (Claude Code, Cursor, Codex, Copilot, etc.). |
 
-When an AI agent runs larascan (detected via `laravel/agent-detector` — Claude Code, Cursor, Codex, Gemini CLI, Copilot, etc.), JSON is the default. Force it with `LARASCAN_AGENT_MODE=1`.
+Force JSON manually with `LARASCAN_AGENT_MODE=1` or `--format=json`.
 
-After installing, the following checks are available by default:
+## Configuration
 
-**Config (`config.*`)**
+Published `config/larascan.php` controls:
+
+- `fail_on` — severity threshold for non-zero exit code (`critical|high|medium|low|info`, default `high`)
+- `checks` — per-check enable map (`'cookies.session-secure' => ['enabled' => false]`)
+- `ignore` — glob patterns to skip during AST scans
+- `tools` — override binary paths via env vars: `LARASCAN_COMPOSER_BIN`, `LARASCAN_NPM_BIN`, `LARASCAN_SEMGREP_BIN`
+
+See [docs/configuration.md](docs/configuration.md) for full details.
+
+## CI integration
+
+The published workflow runs on PR + push to main + nightly. It uses `--only-failed` to keep CI logs lean, with the Report Card at the end for the overview.
+
+```bash
+php artisan larascan:install --workflow
+```
+
+Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [docs/ci-integration.md](docs/ci-integration.md).
+
+## What's checked?
+
+70 checks across 15 categories. Some require optional packages — those checks self-skip when the package isn't installed.
+
+<details>
+<summary><strong>Show all 70 checks</strong></summary>
+
+**Config (`config.*`)** — 9
 - `config.app-debug` — APP_DEBUG must be false in production
 - `config.app-key` — APP_KEY must be set
 - `config.app-env` — APP_ENV must not be a development value in production
@@ -47,7 +113,7 @@ After installing, the following checks are available by default:
 - `config.debug-blacklist` — debug_blacklist must redact sensitive env keys when debug is on
 - `config.trusted-proxies` — Trusted proxies must not be wildcard
 
-**Cookies & sessions (`cookies.*`)**
+**Cookies & sessions (`cookies.*`)** — 7
 - `cookies.session-secure` — SESSION_SECURE_COOKIE must be true in production
 - `cookies.session-http-only` — SESSION_HTTP_ONLY must be true
 - `cookies.session-same-site` — SESSION_SAME_SITE must be lax or strict
@@ -56,96 +122,101 @@ After installing, the following checks are available by default:
 - `cookies.encrypt-middleware` — EncryptCookies middleware must be registered
 - `cookies.encrypt-excludes` — Sensitive cookies must not be in EncryptCookies::$except
 
-**Headers (`headers.*`)**
+**Headers (`headers.*`)** — 7
 - `headers.cors-wildcard` — CORS allowed_origins must not be wildcard with credentials enabled
 - `headers.hsts` — HSTS header middleware must be active in production
 - `headers.x-content-type-options` — X-Content-Type-Options: nosniff middleware must be active
 - `headers.x-frame-options` — X-Frame-Options or frame-ancestors must be set
 - `headers.referrer-policy` — Referrer-Policy header middleware should be active
-- `headers.csp-defined` — CSP middleware must be active (requires `spatie/laravel-csp`)
-- `headers.csp-unsafe-inline` — CSP must not use unsafe-inline or unsafe-eval (requires `spatie/laravel-csp`)
+- `headers.csp-defined` — CSP middleware must be active *(requires [spatie/laravel-csp](https://github.com/spatie/laravel-csp))*
+- `headers.csp-unsafe-inline` — CSP must not use unsafe-inline or unsafe-eval *(requires spatie/laravel-csp)*
 
-**Auth (`auth.*`)**
+**Auth (`auth.*`)** — 6
 - `auth.bcrypt-rounds` — BCRYPT_ROUNDS must be 12 or higher
-- `auth.sanctum-expiration` — Sanctum tokens must have an expiration (requires `laravel/sanctum`)
+- `auth.sanctum-expiration` — Sanctum tokens must have an expiration *(requires [laravel/sanctum](https://github.com/laravel/sanctum))*
 - `auth.login-throttle` — Login routes must have throttle middleware
 - `auth.password-column-plain` — User model must hide or hash the password column
 - `auth.signed-routes-verify` — Email verification routes must use signed middleware
-- `auth.api-ability-scoping` — Sanctum tokens must be created with explicit abilities (requires `laravel/sanctum`)
+- `auth.api-ability-scoping` — Sanctum tokens must be created with explicit abilities *(requires laravel/sanctum)*
 
-**CSRF (`csrf.*`)**
+**CSRF (`csrf.*`)** — 2
 - `csrf.middleware-disabled` — VerifyCsrfToken middleware must be registered
 - `csrf.except-suspicious` — CSRF except list must not contain wildcard patterns
 
-**Models (`models.*`)**
+**Models (`models.*`)** — 4
 - `models.unguarded` — Eloquent models must not use `$guarded = []`
 - `models.unguard-call` — No static `Model::unguard()` calls in application code
 - `models.foreign-key-fillable` — Foreign key columns should not be in `$fillable`
 - `models.force-fill-user-input` — `forceFill()` calls bypass mass-assignment protection
 
-**PHP (`php.*`)**
-- `php.expose-php` — expose_php must be off
-- `php.display-errors` — display_errors must be off in production
-- `php.allow-url-fopen` — allow_url_fopen should be off
-- `php.public-sensitive-files` — No .env / .git / .sql backups in public/
-- `php.phpinfo` — No phpinfo() calls in application code
-
-**Logging (`logging.*`)**
-- `logging.dd-dump-debug` — No dd() / dump() / var_dump() in application code
-- `logging.custom-error-pages` — resources/views/errors/500.blade.php and 503.blade.php must exist
-- `logging.sensitive-in-log-context` — Log context arrays must not contain password/token/secret keys
-
-**Repo & CI (`repo.*`)**
-- `repo.dependabot` — .github/dependabot.yml should exist for automated dep updates
-- `repo.gitleaks-history` — No high-entropy secrets in git history (last 100 commits)
-- `repo.debug-toolbars` — Debug packages (debugbar, telescope) must be in require-dev only
-
-**XSS (`xss.*`)**
-- `xss.blade-unescaped` — Blade {!! $var !!} with PHP variables risks XSS
-- `xss.html-string` — Illuminate\Support\HtmlString produces unescaped HTML
-- `xss.url-javascript-protocol` — javascript: URLs in href/src are XSS sinks
-
-**Files (`files.*`)**
-- `files.path-traversal` — Storage/File operations with user-controlled paths
-- `files.unlink-user-input` — unlink()/rmdir() in application code
-- `files.upload-mimes-validation` — Validation by extension rather than MIME
-- `files.public-executable-uploads` — Upload rules allowing .php/.phtml/.phar
-
-**Injection (`injection.*`)**
-- `injection.command` — exec/shell_exec/system/passthru calls
-- `injection.process-shell` — Process::fromShellCommandline() usage
-- `injection.unserialize` — unserialize() of any input
-- `injection.open-redirect` — redirect() with user-controlled URL
-- `injection.host-header` — app.url missing or pointing to localhost
-
-**Crypto & secrets (`crypto.*`)**
-- `crypto.weak-hash` — md5/sha1 for security purposes
-- `crypto.weak-random` — rand/mt_rand/uniqid for security tokens
-- `crypto.cipher-not-pinned` — config/app.php does not pin the cipher
-- `crypto.hardcoded-secret` — High-entropy secrets or known token patterns in code
-
-**SQL (`sql.*`)**
+**SQL (`sql.*`)** — 4
 - `sql.raw-user-input` — DB::raw / whereRaw / selectRaw with user input
 - `sql.raw-order-by` — orderByRaw with user input
 - `sql.variable-table-column` — Variable arguments to DB::table / from / select
 - `sql.validation-rule-injection` — Validation rules from variable source
 
-**Dependencies (`dependencies.*`)**
+**XSS (`xss.*`)** — 3
+- `xss.blade-unescaped` — Blade `{!! $var !!}` with PHP variables risks XSS
+- `xss.html-string` — `Illuminate\Support\HtmlString` produces unescaped HTML
+- `xss.url-javascript-protocol` — `javascript:` URLs in href/src are XSS sinks
+
+**Files (`files.*`)** — 4
+- `files.path-traversal` — Storage/File operations with user-controlled paths
+- `files.unlink-user-input` — `unlink()`/`rmdir()` in application code
+- `files.upload-mimes-validation` — Validation by extension rather than MIME
+- `files.public-executable-uploads` — Upload rules allowing .php/.phtml/.phar
+
+**Injection (`injection.*`)** — 5
+- `injection.command` — `exec`/`shell_exec`/`system`/`passthru` calls
+- `injection.process-shell` — `Process::fromShellCommandline()` usage
+- `injection.unserialize` — `unserialize()` of any input
+- `injection.open-redirect` — `redirect()` with user-controlled URL
+- `injection.host-header` — `app.url` missing or pointing to localhost
+
+**Crypto & secrets (`crypto.*`)** — 4
+- `crypto.weak-hash` — md5/sha1 for security purposes
+- `crypto.weak-random` — rand/mt_rand/uniqid for security tokens
+- `crypto.cipher-not-pinned` — `config/app.php` does not pin the cipher
+- `crypto.hardcoded-secret` — High-entropy secrets or known token patterns in code
+
+**Dependencies (`dependencies.*`)** — 4
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
 - `dependencies.npm-audit` — wraps `npm audit` when a `package.json` is present
 - `dependencies.minimum-stability-dev` — composer.json minimum-stability is 'dev' without prefer-stable
 - `dependencies.outdated-php` — PHP version at or near end-of-life
 
-## Documentation
+**PHP (`php.*`)** — 5
+- `php.expose-php` — expose_php must be off
+- `php.display-errors` — display_errors must be off in production
+- `php.allow-url-fopen` — allow_url_fopen should be off
+- `php.public-sensitive-files` — No .env / .git / .sql backups in public/
+- `php.phpinfo` — No `phpinfo()` calls in application code
 
-- [Design spec](docs/superpowers/specs/2026-05-15-larascan-design.md)
-- Per-check documentation lives under `docs/checks/` (added in Phase 7).
+**Logging (`logging.*`)** — 3
+- `logging.dd-dump-debug` — No `dd()` / `dump()` / `var_dump()` in application code
+- `logging.custom-error-pages` — `resources/views/errors/500.blade.php` and `503.blade.php` must exist
+- `logging.sensitive-in-log-context` — Log context arrays must not contain password/token/secret keys
+
+**Repo & CI (`repo.*`)** — 3
+- `repo.dependabot` — `.github/dependabot.yml` should exist for automated dep updates
+- `repo.gitleaks-history` — No high-entropy secrets in git history (last 100 commits)
+- `repo.debug-toolbars` — Debug packages (debugbar, telescope) must be in `require-dev` only
+
+</details>
 
 ## Requirements
 
 - PHP 8.2+
 - Laravel 10 / 11 / 12 / 13
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Tests must pass, PHPStan must be clean at level 8, Pint must be clean.
+
+## Security
+
+If you discover a security issue, please email bas@ux.nl instead of opening a public issue.
+
 ## License
 
-MIT
+The MIT License (MIT). See [LICENSE.md](LICENSE.md).
