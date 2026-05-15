@@ -33,6 +33,8 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Models\UnguardCallCheck;
+use Baspa\Larascan\Checks\Models\UnguardedModelCheck;
 use Baspa\Larascan\Checks\Php\AllowUrlFopenCheck;
 use Baspa\Larascan\Checks\Php\DisplayErrorsCheck;
 use Baspa\Larascan\Checks\Php\ExposePhpCheck;
@@ -93,6 +95,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             SanctumExpirationCheck::class,
             CsrfMiddlewareDisabledCheck::class,
             CsrfExceptSuspiciousCheck::class,
+            UnguardedModelCheck::class,
+            UnguardCallCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -130,6 +134,16 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(PhpinfoCheck::class, fn (): PhpinfoCheck => new PhpinfoCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnguardedModelCheck::class, fn (): UnguardedModelCheck => new UnguardedModelCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(UnguardCallCheck::class, fn (): UnguardCallCheck => new UnguardCallCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));

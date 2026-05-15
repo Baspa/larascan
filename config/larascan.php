@@ -37,6 +37,8 @@ return [
         'auth.sanctum-expiration' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
+        'models.unguarded' => ['enabled' => true],
+        'models.unguard-call' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
