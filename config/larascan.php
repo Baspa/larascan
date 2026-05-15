@@ -22,6 +22,7 @@ return [
         'cookies.encrypt-middleware' => ['enabled' => true],
         'cookies.encrypt-excludes' => ['enabled' => true],
         'headers.cors-wildcard' => ['enabled' => true],
+        'headers.hsts' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],

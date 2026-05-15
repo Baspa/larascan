@@ -23,6 +23,7 @@ use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
+use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -63,6 +64,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             EncryptCookiesMiddlewareCheck::class,
             EncryptCookiesExcludesCheck::class,
             CorsWildcardCheck::class,
+            HstsCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];

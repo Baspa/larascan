@@ -13,6 +13,9 @@ it('runs the larascan command and shows the report', function () {
     config()->set('session.same_site', 'lax');
     config()->set('session.encrypt', true);
     config()->set('session.lifetime', 120);
+    $checks = config('larascan.checks', []);
+    $checks['headers.hsts'] = ['enabled' => false];
+    config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
         ->expectsOutputToContain('larascan — security scan')
