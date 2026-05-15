@@ -53,7 +53,7 @@ final class AppDebugCheck extends AbstractCheck
         /** @var \Illuminate\Contracts\Config\Repository $config */
         $config = $this->app->make('config');
 
-        if ($config->get('app.debug') === true) {
+        if (filter_var($config->get('app.debug'), FILTER_VALIDATE_BOOLEAN)) {
             yield new Finding(
                 checkId: $this->id(),
                 severity: $this->severity(),
