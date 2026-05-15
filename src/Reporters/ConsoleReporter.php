@@ -104,12 +104,12 @@ final class ConsoleReporter
 
             case CheckStatus::Failed:
                 if ($findings === []) {
-                    $output->writeln(sprintf('     <fg=red>✗</> %-45s <fg=red>FAILED</>', $checkId));
+                    $output->writeln(sprintf('     <fg=red>✗</> %s <fg=red>FAILED</>', $checkId));
 
                     return;
                 }
 
-                // Find the highest severity for the check-level badge
+                // Find the highest severity to color the check-level glyph
                 $highest = $findings[0]->severity;
                 foreach ($findings as $f) {
                     if ($f->severity->rank() > $highest->rank()) {
@@ -118,10 +118,9 @@ final class ConsoleReporter
                 }
 
                 $output->writeln(sprintf(
-                    '     %s %-45s %s',
-                    $this->statusGlyph(CheckStatus::Failed),
+                    '     %s %s',
+                    $this->failedGlyphFor($highest),
                     $checkId,
-                    $this->severityTag($highest),
                 ));
 
                 $lastKey = array_key_last($findings);
@@ -133,8 +132,9 @@ final class ConsoleReporter
                         $location = sprintf(' <fg=gray>(%s)</>', $loc);
                     }
                     $output->writeln(sprintf(
-                        '        <fg=gray>%s</> %s%s',
+                        '        <fg=gray>%s</> %s %s%s',
                         $connector,
+                        $this->severityLabel($f->severity),
                         $f->message,
                         $location,
                     ));
@@ -154,14 +154,26 @@ final class ConsoleReporter
         };
     }
 
-    private function severityTag(Severity $severity): string
+    private function severityLabel(Severity $severity): string
+    {
+        // Slim text-only label, padded to 8 chars for clean column alignment.
+        return match ($severity) {
+            Severity::Critical => '<fg=red;options=bold>CRITICAL</>',
+            Severity::High => '<fg=red>HIGH    </>',
+            Severity::Medium => '<fg=yellow>MEDIUM  </>',
+            Severity::Low => '<fg=blue>LOW     </>',
+            Severity::Info => '<fg=gray>INFO    </>',
+        };
+    }
+
+    private function failedGlyphFor(Severity $severity): string
     {
         return match ($severity) {
-            Severity::Critical => '<fg=white;bg=red;options=bold> CRITICAL </>',
-            Severity::High => '<fg=black;bg=red>   HIGH   </>',
-            Severity::Medium => '<fg=black;bg=yellow>  MEDIUM  </>',
-            Severity::Low => '<fg=white;bg=blue>   LOW    </>',
-            Severity::Info => '<fg=white;bg=gray>   INFO   </>',
+            Severity::Critical => '<fg=red;options=bold>✗</>',
+            Severity::High => '<fg=red>✗</>',
+            Severity::Medium => '<fg=yellow>✗</>',
+            Severity::Low => '<fg=blue>✗</>',
+            Severity::Info => '<fg=gray>✗</>',
         };
     }
 
@@ -225,7 +237,7 @@ final class ConsoleReporter
         if ($highest !== null) {
             $output->writeln(sprintf(
                 '  Highest severity: %s',
-                $this->severityTag($highest),
+                $this->severityLabel($highest),
             ));
         }
         $output->writeln('');
