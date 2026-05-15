@@ -7,6 +7,7 @@ return [
 
     'checks' => [
         'dependencies.composer-audit' => ['enabled' => true],
+        'dependencies.npm-audit' => ['enabled' => true],
     ],
 
     'ignore' => [
