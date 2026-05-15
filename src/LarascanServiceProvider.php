@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Baspa\Larascan;
 
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
+use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Support\CheckRegistry;
@@ -19,8 +20,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->name('larascan')
             ->hasConfigFile('larascan')
             ->hasCommand(ScanCommand::class)
-            ->hasCommand(ListChecksCommand::class);
-        // Additional hasCommand() calls are appended in Task 14.
+            ->hasCommand(ListChecksCommand::class)
+            ->hasCommand(InstallCommand::class);
     }
 
     public function packageRegistered(): void
