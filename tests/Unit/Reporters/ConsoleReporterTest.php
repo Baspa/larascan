@@ -100,6 +100,43 @@ it('groups checks under category headers', function () {
         ->toContain('Cookies & sessions');
 });
 
+it('hides passed and skipped rows when onlyFailed is true', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->record('config.app-env', CheckStatus::Failed, [
+            new Finding('config.app-env', Severity::Info, 'APP_ENV is dev'),
+        ])
+        ->record('dependencies.npm-audit', CheckStatus::Skipped, [], 'no package.json');
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output, onlyFailed: true);
+    $text = $output->fetch();
+
+    expect($text)->not->toContain('config.app-debug')
+        ->and($text)->not->toContain('dependencies.npm-audit')
+        ->and($text)->toContain('config.app-env');
+});
+
+it('skips the whole category section when all checks pass under onlyFailed', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->record('cookies.session-secure', CheckStatus::Failed, [
+            new Finding('cookies.session-secure', Severity::Critical, 'bad'),
+        ]);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output, onlyFailed: true);
+    $text = $output->fetch();
+
+    // The per-category section header for "Application configuration" should
+    // be skipped, but the Report Card still lists all categories — so we look
+    // for a "config.app-debug" row instead which only appears in the per-check
+    // section.
+    expect($text)->not->toContain('config.app-debug')
+        ->and($text)->toContain('Cookies & sessions')
+        ->and($text)->toContain('cookies.session-secure');
+});
+
 it('renders a report card with category bars', function () {
     $result = (new ScanResult)
         ->record('config.app-debug', CheckStatus::Passed, [])

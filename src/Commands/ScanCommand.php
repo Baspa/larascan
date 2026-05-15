@@ -20,6 +20,7 @@ class ScanCommand extends Command
         {--check=* : Filter checks by ID pattern (e.g. cookies.*) — repeatable}
         {--category= : Filter checks by category}
         {--ignore-errors : Force exit 0 even when checks error}
+        {--only-failed : Hide passed and skipped checks; show only failures and errors}
         {--format= : Output format: human (default) or json (auto-selected for agents)}';
 
     protected $description = 'Run larascan security scan';
@@ -66,12 +67,14 @@ class ScanCommand extends Command
             ? strtolower($formatOption)
             : $this->autoFormat();
 
+        $onlyFailed = (bool) $this->option('only-failed');
+
         $result = $larascan->scan($options);
 
         if ($format === 'json') {
-            (new JsonReporter)->render($result, $this->output);
+            (new JsonReporter)->render($result, $this->output, onlyFailed: $onlyFailed);
         } else {
-            $reporter->render($result, $this->output);
+            $reporter->render($result, $this->output, onlyFailed: $onlyFailed);
         }
 
         $counts = $result->counts();

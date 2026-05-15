@@ -21,6 +21,7 @@ php artisan larascan:install
 php artisan larascan                  # run all enabled checks
 php artisan larascan --category=config
 php artisan larascan --fail-on=high   # CI threshold
+php artisan larascan --only-failed    # hide passed + skipped, show only findings
 php artisan larascan:list             # list registered checks
 ```
 

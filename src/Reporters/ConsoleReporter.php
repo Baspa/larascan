@@ -15,7 +15,7 @@ final class ConsoleReporter
 {
     private const BAR_WIDTH = 20;
 
-    public function render(ScanResult $result, OutputInterface $output): void
+    public function render(ScanResult $result, OutputInterface $output, bool $onlyFailed = false): void
     {
         $output->writeln('');
         $output->writeln('<fg=cyan;options=bold>larascan</> security scan');
@@ -37,6 +37,20 @@ final class ConsoleReporter
 
         // Render per-category sections
         foreach ($byCategory as $prefix => $checkIds) {
+            if ($onlyFailed) {
+                $checkIds = array_filter(
+                    $checkIds,
+                    fn (string $id) => in_array(
+                        $result->statusOf($id),
+                        [CheckStatus::Failed, CheckStatus::Errored],
+                        true,
+                    ),
+                );
+                if ($checkIds === []) {
+                    continue;
+                }
+            }
+
             $cat = Category::tryFrom($prefix);
             $label = $cat?->label() ?? ucfirst($prefix);
 
@@ -55,7 +69,7 @@ final class ConsoleReporter
             $output->writeln('');
         }
 
-        // Report Card
+        // Report Card — always uses the full unfiltered $byCategory for accurate stats
         $this->renderReportCard($output, $result, $byCategory);
     }
 

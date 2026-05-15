@@ -52,6 +52,25 @@ it('includes file and line in findings when present', function () {
         ->and($sqlFinding['line'])->toBe(42);
 });
 
+it('filters checks array when onlyFailed is true but keeps summary intact', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->record('config.app-env', CheckStatus::Failed, [
+            new Finding('config.app-env', Severity::Info, 'APP_ENV is dev'),
+        ])
+        ->record('dependencies.npm-audit', CheckStatus::Skipped, [], 'no package.json');
+
+    $output = new BufferedOutput;
+    (new JsonReporter)->render($result, $output, onlyFailed: true);
+    $decoded = json_decode($output->fetch(), true);
+
+    expect($decoded['checks'])->toHaveCount(1)
+        ->and($decoded['checks'][0]['id'])->toBe('config.app-env')
+        ->and($decoded['summary']['passed'])->toBe(1)
+        ->and($decoded['summary']['failed'])->toBe(1)
+        ->and($decoded['summary']['skipped'])->toBe(1);
+});
+
 it('includes skip_reason for skipped checks', function () {
     $result = (new ScanResult)
         ->record('dependencies.npm-audit', CheckStatus::Skipped, [], 'no package.json');

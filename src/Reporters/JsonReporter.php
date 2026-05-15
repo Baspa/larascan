@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class JsonReporter
 {
-    public function render(ScanResult $result, OutputInterface $output): void
+    public function render(ScanResult $result, OutputInterface $output, bool $onlyFailed = false): void
     {
         $findingsByCheck = [];
         foreach ($result->findings() as $f) {
@@ -20,6 +20,9 @@ final class JsonReporter
 
         $checks = [];
         foreach ($result->statuses() as $checkId => $status) {
+            if ($onlyFailed && ! in_array($status, [CheckStatus::Failed, CheckStatus::Errored], true)) {
+                continue;
+            }
             $prefix = explode('.', $checkId, 2)[0];
             $entry = [
                 'id' => $checkId,
