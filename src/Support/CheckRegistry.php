@@ -13,12 +13,11 @@ final class CheckRegistry
     private array $checks = [];
 
     /**
-     * @param array<string, array{enabled?: bool}> $config
+     * @param  array<string, array{enabled?: bool}>  $config
      */
     public function __construct(
         private readonly array $config = [],
-    ) {
-    }
+    ) {}
 
     public function register(Check $check): void
     {
@@ -49,16 +48,17 @@ final class CheckRegistry
     }
 
     /**
-     * @param array<int, string> $patterns
+     * @param  array<int, string>  $patterns
      * @return iterable<Check>
      */
     public function matching(array $patterns): iterable
     {
         foreach ($this->checks as $id => $check) {
             foreach ($patterns as $pattern) {
-                $regex = '/^' . str_replace('\\*', '.*', preg_quote($pattern, '/')) . '$/';
+                $regex = '/^'.str_replace('\\*', '.*', preg_quote($pattern, '/')).'$/';
                 if (preg_match($regex, $id) === 1) {
                     yield $check;
+
                     continue 2;
                 }
             }

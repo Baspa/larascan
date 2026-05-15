@@ -9,21 +9,20 @@ use Throwable;
 final class ScanResult
 {
     /**
-     * @param array<string, CheckStatus> $statuses
-     * @param array<int, Finding> $findings
-     * @param array<string, string> $skipReasons
-     * @param array<string, string> $errors
+     * @param  array<string, CheckStatus>  $statuses
+     * @param  array<int, Finding>  $findings
+     * @param  array<string, string>  $skipReasons
+     * @param  array<string, string>  $errors
      */
     public function __construct(
         private array $statuses = [],
         private array $findings = [],
         private array $skipReasons = [],
         private array $errors = [],
-    ) {
-    }
+    ) {}
 
     /**
-     * @param iterable<Finding> $findings
+     * @param  iterable<Finding>  $findings
      */
     public function record(string $checkId, CheckStatus $status, iterable $findings, ?string $skipReason = null): self
     {
@@ -49,7 +48,7 @@ final class ScanResult
         $statuses[$checkId] = CheckStatus::Errored;
 
         $errors = $this->errors;
-        $errors[$checkId] = $e::class . ': ' . $e->getMessage();
+        $errors[$checkId] = $e::class.': '.$e->getMessage();
 
         return new self($statuses, $this->findings, $this->skipReasons, $errors);
     }
@@ -86,6 +85,7 @@ final class ScanResult
         foreach ($this->statuses as $status) {
             $counts[$status->value]++;
         }
+
         return $counts;
     }
 
@@ -97,6 +97,7 @@ final class ScanResult
                 $highest = $f->severity;
             }
         }
+
         return $highest;
     }
 

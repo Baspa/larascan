@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Baspa\Larascan\Support\FileParser;
 
 it('parses a php file into a node list', function () {
-    $path = __DIR__ . '/fixtures/simple.php';
+    $path = __DIR__.'/fixtures/simple.php';
     @mkdir(dirname($path), 0755, true);
     file_put_contents($path, "<?php\necho 'hi';\n");
 
-    $parser = new FileParser();
+    $parser = new FileParser;
     $ast = $parser->parse($path);
 
     expect($ast)->toBeArray()->and($ast)->not->toBeEmpty();
@@ -17,11 +17,11 @@ it('parses a php file into a node list', function () {
 });
 
 it('returns null on syntax error', function () {
-    $path = __DIR__ . '/fixtures/broken.php';
+    $path = __DIR__.'/fixtures/broken.php';
     @mkdir(dirname($path), 0755, true);
     file_put_contents($path, "<?php\nthis is not php\n");
 
-    $parser = new FileParser();
+    $parser = new FileParser;
     $ast = $parser->parse($path);
 
     expect($ast)->toBeNull();
@@ -29,11 +29,11 @@ it('returns null on syntax error', function () {
 });
 
 it('caches parsed AST per path', function () {
-    $path = __DIR__ . '/fixtures/cached.php';
+    $path = __DIR__.'/fixtures/cached.php';
     @mkdir(dirname($path), 0755, true);
     file_put_contents($path, "<?php\necho 1;\n");
 
-    $parser = new FileParser();
+    $parser = new FileParser;
     $first = $parser->parse($path);
 
     file_put_contents($path, "<?php\necho 2;\n"); // mutate after first parse

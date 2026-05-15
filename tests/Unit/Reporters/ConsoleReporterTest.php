@@ -10,15 +10,15 @@ use Baspa\Larascan\Support\Severity;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 it('renders a passed, failed and skipped row plus summary', function () {
-    $result = (new ScanResult())
+    $result = (new ScanResult)
         ->record('config.app-debug', CheckStatus::Passed, [])
         ->record('cookies.session-secure', CheckStatus::Failed, [
             new Finding('cookies.session-secure', Severity::Critical, 'SESSION_SECURE_COOKIE is false'),
         ])
         ->record('dependencies.npm-audit', CheckStatus::Skipped, [], 'no package.json');
 
-    $output = new BufferedOutput();
-    (new ConsoleReporter())->render($result, $output);
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
 
     $text = $output->fetch();
     expect($text)

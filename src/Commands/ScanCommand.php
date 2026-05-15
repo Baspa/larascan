@@ -28,6 +28,7 @@ class ScanCommand extends Command
         $failOn = Severity::tryFrom((string) $failOnRaw);
         if ($failOn === null) {
             $this->error("Invalid --fail-on value: {$failOnRaw}");
+
             return 2;
         }
 
@@ -37,6 +38,7 @@ class ScanCommand extends Command
             $category = Category::tryFrom($categoryRaw);
             if ($category === null) {
                 $this->error("Unknown category: {$categoryRaw}");
+
                 return 2;
             }
         }

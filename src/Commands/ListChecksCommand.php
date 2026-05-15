@@ -23,6 +23,7 @@ class ListChecksCommand extends Command
             $category = Category::tryFrom($categoryRaw);
             if ($category === null) {
                 $this->error("Unknown category: {$categoryRaw}");
+
                 return 2;
             }
         }
@@ -42,6 +43,7 @@ class ListChecksCommand extends Command
         }
 
         $this->table(['ID', 'Category', 'Severity', 'Name'], $rows);
+
         return 0;
     }
 }

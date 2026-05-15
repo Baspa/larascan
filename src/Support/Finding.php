@@ -13,6 +13,5 @@ final readonly class Finding
         public ?string $file = null,
         public ?int $line = null,
         public ?string $snippet = null,
-    ) {
-    }
+    ) {}
 }

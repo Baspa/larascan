@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan\Commands;
 
+use Baspa\Larascan\LarascanServiceProvider;
 use Illuminate\Console\Command;
 
 class InstallCommand extends Command
@@ -17,7 +18,7 @@ class InstallCommand extends Command
         $this->info('Installing larascan...');
 
         $this->call('vendor:publish', [
-            '--provider' => \Baspa\Larascan\LarascanServiceProvider::class,
+            '--provider' => LarascanServiceProvider::class,
             '--tag' => 'larascan-config',
         ]);
 

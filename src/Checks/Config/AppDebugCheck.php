@@ -8,14 +8,14 @@ use Baspa\Larascan\Support\AbstractCheck;
 use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\Finding;
 use Baspa\Larascan\Support\Severity;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 
 final class AppDebugCheck extends AbstractCheck
 {
     public function __construct(
         private readonly Application $app,
-    ) {
-    }
+    ) {}
 
     public function id(): string
     {
@@ -39,7 +39,7 @@ final class AppDebugCheck extends AbstractCheck
 
     public function isApplicable(): bool
     {
-        /** @var \Illuminate\Contracts\Config\Repository $config */
+        /** @var Repository $config */
         $config = $this->app->make('config');
 
         return $config->get('app.env') === 'production';
@@ -50,7 +50,7 @@ final class AppDebugCheck extends AbstractCheck
      */
     public function run(): iterable
     {
-        /** @var \Illuminate\Contracts\Config\Repository $config */
+        /** @var Repository $config */
         $config = $this->app->make('config');
 
         if (filter_var($config->get('app.debug'), FILTER_VALIDATE_BOOLEAN)) {

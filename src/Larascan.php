@@ -16,21 +16,21 @@ final class Larascan
 {
     public function __construct(
         private readonly CheckRegistry $registry,
-    ) {
-    }
+    ) {}
 
     public function registry(): CheckRegistry
     {
         return $this->registry;
     }
 
-    public function scan(ScanOptions $options = new ScanOptions()): ScanResult
+    public function scan(ScanOptions $options = new ScanOptions): ScanResult
     {
-        $result = new ScanResult();
+        $result = new ScanResult;
 
         foreach ($this->selectChecks($options) as $check) {
             if (! $check->isApplicable()) {
                 $result = $result->record($check->id(), CheckStatus::Skipped, [], 'not applicable');
+
                 continue;
             }
 

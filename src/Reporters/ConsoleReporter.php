@@ -52,7 +52,7 @@ final class ConsoleReporter
     }
 
     /**
-     * @param array<int, Finding> $findings
+     * @param  array<int, Finding>  $findings
      */
     private function renderFailures(string $checkId, array $findings): string
     {
@@ -69,6 +69,7 @@ final class ConsoleReporter
                 $f->message,
             );
         }
+
         return implode("\n", $lines);
     }
 }
