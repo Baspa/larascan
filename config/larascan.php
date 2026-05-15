@@ -56,6 +56,7 @@ return [
         'files.upload-mimes-validation' => ['enabled' => true],
         'files.public-executable-uploads' => ['enabled' => true],
         'sql.raw-user-input' => ['enabled' => true],
+        'sql.raw-order-by' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],

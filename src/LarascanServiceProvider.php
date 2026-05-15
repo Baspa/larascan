@@ -65,6 +65,7 @@ use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
+use Baspa\Larascan\Checks\Sql\SqlRawOrderByCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
 use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
@@ -155,6 +156,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             UploadMimesValidationCheck::class,
             PublicExecutableUploadsCheck::class,
             SqlRawUserInputCheck::class,
+            SqlRawOrderByCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -326,6 +328,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(SqlRawUserInputCheck::class, fn (): SqlRawUserInputCheck => new SqlRawUserInputCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(SqlRawOrderByCheck::class, fn (): SqlRawOrderByCheck => new SqlRawOrderByCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
