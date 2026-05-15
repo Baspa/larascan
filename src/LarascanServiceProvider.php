@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Support\CheckRegistry;
@@ -30,7 +31,7 @@ class LarascanServiceProvider extends PackageServiceProvider
 
             $registry = new CheckRegistry($config);
 
-            // Checks shipped with this package are registered in later tasks.
+            $registry->register(new AppDebugCheck($this->app));
 
             return $registry;
         });
