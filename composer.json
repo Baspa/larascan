@@ -1,7 +1,19 @@
 {
     "name": "baspa/larascan",
     "description": "A security-focused static analysis package for Laravel applications",
-    "keywords": ["laravel", "security", "static-analysis", "sast", "scanner"],
+    "keywords": [
+        "laravel",
+        "security",
+        "static-analysis",
+        "sast",
+        "scanner",
+        "audit",
+        "csp",
+        "xss",
+        "sql-injection",
+        "dependency-scanning",
+        "owasp"
+    ],
     "homepage": "https://github.com/baspa/larascan",
     "license": "MIT",
     "authors": [
