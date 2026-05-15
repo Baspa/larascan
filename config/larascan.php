@@ -58,6 +58,7 @@ return [
         'sql.raw-user-input' => ['enabled' => true],
         'sql.raw-order-by' => ['enabled' => true],
         'sql.variable-table-column' => ['enabled' => true],
+        'sql.validation-rule-injection' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],
