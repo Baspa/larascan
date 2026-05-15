@@ -15,6 +15,8 @@ it('runs the larascan command and shows the report', function () {
     config()->set('session.lifetime', 120);
     $checks = config('larascan.checks', []);
     $checks['headers.hsts'] = ['enabled' => false];
+    $checks['headers.x-content-type-options'] = ['enabled' => false];
+    $checks['headers.x-frame-options'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
