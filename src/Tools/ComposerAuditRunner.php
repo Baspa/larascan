@@ -25,6 +25,10 @@ class ComposerAuditRunner implements ToolRunner
 
     public function isAvailable(): bool
     {
+        if (! is_file($this->workingDir . '/composer.lock')) {
+            return false;
+        }
+
         return (new ExecutableFinder())->find($this->binary) !== null;
     }
 
