@@ -144,16 +144,6 @@ final class ConsoleReporter
         }
     }
 
-    private function statusGlyph(CheckStatus $status): string
-    {
-        return match ($status) {
-            CheckStatus::Passed => '<fg=green>✓</>',
-            CheckStatus::Failed => '<fg=red>✗</>',
-            CheckStatus::Skipped => '<fg=yellow>⊘</>',
-            CheckStatus::Errored => '<fg=red;options=bold>!</>',
-        };
-    }
-
     private function severityLabel(Severity $severity): string
     {
         // Slim text-only label, padded to 8 chars for clean column alignment.
