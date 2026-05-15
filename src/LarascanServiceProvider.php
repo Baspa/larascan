@@ -5,6 +5,14 @@ declare(strict_types=1);
 namespace Baspa\Larascan;
 
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
+use Baspa\Larascan\Checks\Config\AppEnvCheck;
+use Baspa\Larascan\Checks\Config\AppKeyCheck;
+use Baspa\Larascan\Checks\Config\DebugBlacklistCheck;
+use Baspa\Larascan\Checks\Config\EnvCallsOutsideConfigCheck;
+use Baspa\Larascan\Checks\Config\EnvExampleSyncCheck;
+use Baspa\Larascan\Checks\Config\EnvNotCommittedCheck;
+use Baspa\Larascan\Checks\Config\LogLevelCheck;
+use Baspa\Larascan\Checks\Config\TrustedProxiesCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Commands\InstallCommand;
@@ -12,6 +20,7 @@ use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Contracts\Check;
 use Baspa\Larascan\Support\CheckRegistry;
+use Baspa\Larascan\Support\FileParser;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
 use Baspa\Larascan\Tools\NpmAuditRunner;
 use Baspa\Larascan\Tools\PhpStanRunner;
@@ -30,6 +39,14 @@ class LarascanServiceProvider extends PackageServiceProvider
     {
         return [
             AppDebugCheck::class,
+            AppKeyCheck::class,
+            AppEnvCheck::class,
+            EnvNotCommittedCheck::class,
+            EnvExampleSyncCheck::class,
+            LogLevelCheck::class,
+            EnvCallsOutsideConfigCheck::class,
+            DebugBlacklistCheck::class,
+            TrustedProxiesCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -48,6 +65,19 @@ class LarascanServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->bindRunners();
+
+        $this->app->bind(EnvNotCommittedCheck::class, fn (): EnvNotCommittedCheck => new EnvNotCommittedCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(EnvExampleSyncCheck::class, fn (): EnvExampleSyncCheck => new EnvExampleSyncCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(EnvCallsOutsideConfigCheck::class, fn (): EnvCallsOutsideConfigCheck => new EnvCallsOutsideConfigCheck(
+            basePath: $this->app->basePath(),
+            parser: new FileParser,
+        ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
             /** @var array<string, array{enabled?: bool}> $config */

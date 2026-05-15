@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 it('runs the larascan command and shows the report', function () {
+    // Make the testbench app look like a clean prod deploy so no shipped
+    // check fires above the default fail_on=high threshold.
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', false);
+
     $this->artisan('larascan')
         ->expectsOutputToContain('larascan — security scan')
         ->expectsOutputToContain('Report')
@@ -10,9 +16,10 @@ it('runs the larascan command and shows the report', function () {
 });
 
 it('honors --fail-on for exit code', function () {
-    // No checks registered yet at this task. The scan runs cleanly and reports
-    // no findings → exit 0 regardless of threshold. (After Task 13 the
-    // AppDebugCheck is also registered and remains passed in testbench's local env.)
+    // With AppKeyCheck registered, testbench's empty app.key would yield a
+    // Critical finding. Set a key so the scan runs cleanly.
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+
     $this->artisan('larascan --fail-on=critical')->assertExitCode(0);
 });
 
@@ -35,6 +42,11 @@ it('exits 2 on unknown --category', function () {
 });
 
 it('accepts a valid --category filter', function () {
+    // Same clean-prod setup as the smoke test above.
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', false);
+
     $this->artisan('larascan --category=config')
         ->expectsOutputToContain('larascan — security scan')
         ->assertExitCode(0);

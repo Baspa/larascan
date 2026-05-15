@@ -6,6 +6,14 @@ return [
     'fail_on' => 'high',
 
     'checks' => [
+        'config.app-key' => ['enabled' => true],
+        'config.app-env' => ['enabled' => true],
+        'config.env-not-committed' => ['enabled' => true],
+        'config.env-example-sync' => ['enabled' => true],
+        'config.log-level' => ['enabled' => true],
+        'config.env-calls-outside-config' => ['enabled' => true],
+        'config.debug-blacklist' => ['enabled' => true],
+        'config.trusted-proxies' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
