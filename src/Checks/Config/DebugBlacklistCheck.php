@@ -56,12 +56,16 @@ final class DebugBlacklistCheck extends AbstractCheck
         $blacklist = $config->get('app.debug_blacklist', []);
         $hasEntries = is_array($blacklist) && array_filter($blacklist, fn ($v) => is_array($v) && $v !== []) !== [];
 
-        if (! $hasEntries) {
-            yield new Finding(
-                checkId: $this->id(),
-                severity: $this->severity(),
-                message: 'app.debug_blacklist is empty — Whoops debug pages will expose all env, server and request data when an exception fires.',
-            );
+        if ($hasEntries) {
+            return;
         }
+
+        $env = (string) ($config->get('app.env') ?? '');
+
+        yield new Finding(
+            checkId: $this->id(),
+            severity: $this->severity()->downgradeIfNotProduction($env),
+            message: 'app.debug_blacklist is empty — Whoops debug pages will expose all env, server and request data when an exception fires.',
+        );
     }
 }

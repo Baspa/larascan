@@ -48,12 +48,14 @@ final class AppEnvCheck extends AbstractCheck
         $config = $this->app->make('config');
         $env = $config->get('app.env');
 
-        if (is_string($env) && in_array(strtolower($env), self::DEV_ENVS, true)) {
-            yield new Finding(
-                checkId: $this->id(),
-                severity: $this->severity(),
-                message: "APP_ENV is '{$env}' on a production deploy — leaks development-mode behavior.",
-            );
+        if (! is_string($env) || ! in_array(strtolower($env), self::DEV_ENVS, true)) {
+            return;
         }
+
+        yield new Finding(
+            checkId: $this->id(),
+            severity: $this->severity()->downgradeIfNotProduction((string) $env),
+            message: "APP_ENV is '{$env}' — leaks development-mode behavior in production.",
+        );
     }
 }
