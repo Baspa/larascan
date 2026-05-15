@@ -7,10 +7,12 @@ namespace Baspa\Larascan;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
+use Baspa\Larascan\Checks\Config\DebugBlacklistCheck;
 use Baspa\Larascan\Checks\Config\EnvCallsOutsideConfigCheck;
 use Baspa\Larascan\Checks\Config\EnvExampleSyncCheck;
 use Baspa\Larascan\Checks\Config\EnvNotCommittedCheck;
 use Baspa\Larascan\Checks\Config\LogLevelCheck;
+use Baspa\Larascan\Checks\Config\TrustedProxiesCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Commands\InstallCommand;
@@ -43,6 +45,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             EnvExampleSyncCheck::class,
             LogLevelCheck::class,
             EnvCallsOutsideConfigCheck::class,
+            DebugBlacklistCheck::class,
+            TrustedProxiesCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];

@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 it('runs the larascan command and shows the report', function () {
+    // Make the testbench app look like a clean prod deploy so no shipped
+    // check fires above the default fail_on=high threshold.
     config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', false);
 
     $this->artisan('larascan')
         ->expectsOutputToContain('larascan — security scan')
@@ -38,7 +42,10 @@ it('exits 2 on unknown --category', function () {
 });
 
 it('accepts a valid --category filter', function () {
+    // Same clean-prod setup as the smoke test above.
     config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', false);
 
     $this->artisan('larascan --category=config')
         ->expectsOutputToContain('larascan — security scan')
