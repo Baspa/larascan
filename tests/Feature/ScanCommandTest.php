@@ -11,6 +11,8 @@ it('runs the larascan command and shows the report', function () {
     config()->set('session.secure', true);
     config()->set('session.http_only', true);
     config()->set('session.same_site', 'lax');
+    config()->set('session.encrypt', true);
+    config()->set('session.lifetime', 120);
 
     $this->artisan('larascan')
         ->expectsOutputToContain('larascan — security scan')
@@ -25,6 +27,8 @@ it('honors --fail-on for exit code', function () {
     config()->set('session.secure', true);
     config()->set('session.http_only', true);
     config()->set('session.same_site', 'lax');
+    config()->set('session.encrypt', true);
+    config()->set('session.lifetime', 120);
 
     $this->artisan('larascan --fail-on=critical')->assertExitCode(0);
 });
@@ -55,6 +59,8 @@ it('accepts a valid --category filter', function () {
     config()->set('session.secure', true);
     config()->set('session.http_only', true);
     config()->set('session.same_site', 'lax');
+    config()->set('session.encrypt', true);
+    config()->set('session.lifetime', 120);
 
     $this->artisan('larascan --category=config')
         ->expectsOutputToContain('larascan — security scan')

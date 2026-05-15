@@ -13,7 +13,9 @@ use Baspa\Larascan\Checks\Config\EnvExampleSyncCheck;
 use Baspa\Larascan\Checks\Config\EnvNotCommittedCheck;
 use Baspa\Larascan\Checks\Config\LogLevelCheck;
 use Baspa\Larascan\Checks\Config\TrustedProxiesCheck;
+use Baspa\Larascan\Checks\Cookies\SessionEncryptCheck;
 use Baspa\Larascan\Checks\Cookies\SessionHttpOnlyCheck;
+use Baspa\Larascan\Checks\Cookies\SessionLifetimeCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
@@ -53,6 +55,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             SessionSecureCheck::class,
             SessionHttpOnlyCheck::class,
             SessionSameSiteCheck::class,
+            SessionEncryptCheck::class,
+            SessionLifetimeCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
