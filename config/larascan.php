@@ -53,6 +53,8 @@ return [
         'xss.url-javascript-protocol' => ['enabled' => true],
         'files.path-traversal' => ['enabled' => true],
         'files.unlink-user-input' => ['enabled' => true],
+        'files.upload-mimes-validation' => ['enabled' => true],
+        'files.public-executable-uploads' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],

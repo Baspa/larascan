@@ -35,7 +35,9 @@ use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Checks\Files\PathTraversalCheck;
+use Baspa\Larascan\Checks\Files\PublicExecutableUploadsCheck;
 use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
+use Baspa\Larascan\Checks\Files\UploadMimesValidationCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
 use Baspa\Larascan\Checks\Headers\CspDefinedCheck;
 use Baspa\Larascan\Checks\Headers\CspUnsafeInlineCheck;
@@ -149,6 +151,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             UrlJavascriptProtocolCheck::class,
             PathTraversalCheck::class,
             UnlinkUserInputCheck::class,
+            UploadMimesValidationCheck::class,
+            PublicExecutableUploadsCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -306,6 +310,17 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(UnlinkUserInputCheck::class, fn (): UnlinkUserInputCheck => new UnlinkUserInputCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(UploadMimesValidationCheck::class, fn (): UploadMimesValidationCheck => new UploadMimesValidationCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(PublicExecutableUploadsCheck::class, fn (): PublicExecutableUploadsCheck => new PublicExecutableUploadsCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+            publicPath: $this->app->publicPath(),
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
