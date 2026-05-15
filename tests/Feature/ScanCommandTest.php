@@ -17,6 +17,7 @@ it('runs the larascan command and shows the report', function () {
     $checks['headers.hsts'] = ['enabled' => false];
     $checks['headers.x-content-type-options'] = ['enabled' => false];
     $checks['headers.x-frame-options'] = ['enabled' => false];
+    $checks['php.display-errors'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
@@ -66,6 +67,9 @@ it('accepts a valid --category filter', function () {
     config()->set('session.same_site', 'lax');
     config()->set('session.encrypt', true);
     config()->set('session.lifetime', 120);
+    $checks = config('larascan.checks', []);
+    $checks['php.display-errors'] = ['enabled' => false];
+    config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --category=config')
         ->expectsOutputToContain('larascan — security scan')

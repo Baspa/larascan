@@ -29,6 +29,9 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Php\AllowUrlFopenCheck;
+use Baspa\Larascan\Checks\Php\DisplayErrorsCheck;
+use Baspa\Larascan\Checks\Php\ExposePhpCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -75,6 +78,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             ReferrerPolicyCheck::class,
             CspDefinedCheck::class,
             CspUnsafeInlineCheck::class,
+            ExposePhpCheck::class,
+            DisplayErrorsCheck::class,
+            AllowUrlFopenCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
