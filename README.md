@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — Phase 5 (Headers checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
+> **Status:** Pre-1.0 — Phase 6 (Auth, CSRF, Models, PHP, Logging, Repo checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
 
 ## Install
 
@@ -54,6 +54,41 @@ After installing, the following checks are available by default:
 - `headers.referrer-policy` — Referrer-Policy header middleware should be active
 - `headers.csp-defined` — CSP middleware must be active (requires `spatie/laravel-csp`)
 - `headers.csp-unsafe-inline` — CSP must not use unsafe-inline or unsafe-eval (requires `spatie/laravel-csp`)
+
+**Auth (`auth.*`)**
+- `auth.bcrypt-rounds` — BCRYPT_ROUNDS must be 12 or higher
+- `auth.sanctum-expiration` — Sanctum tokens must have an expiration (requires `laravel/sanctum`)
+- `auth.login-throttle` — Login routes must have throttle middleware
+- `auth.password-column-plain` — User model must hide or hash the password column
+- `auth.signed-routes-verify` — Email verification routes must use signed middleware
+- `auth.api-ability-scoping` — Sanctum tokens must be created with explicit abilities (requires `laravel/sanctum`)
+
+**CSRF (`csrf.*`)**
+- `csrf.middleware-disabled` — VerifyCsrfToken middleware must be registered
+- `csrf.except-suspicious` — CSRF except list must not contain wildcard patterns
+
+**Models (`models.*`)**
+- `models.unguarded` — Eloquent models must not use `$guarded = []`
+- `models.unguard-call` — No static `Model::unguard()` calls in application code
+- `models.foreign-key-fillable` — Foreign key columns should not be in `$fillable`
+- `models.force-fill-user-input` — `forceFill()` calls bypass mass-assignment protection
+
+**PHP (`php.*`)**
+- `php.expose-php` — expose_php must be off
+- `php.display-errors` — display_errors must be off in production
+- `php.allow-url-fopen` — allow_url_fopen should be off
+- `php.public-sensitive-files` — No .env / .git / .sql backups in public/
+- `php.phpinfo` — No phpinfo() calls in application code
+
+**Logging (`logging.*`)**
+- `logging.dd-dump-debug` — No dd() / dump() / var_dump() in application code
+- `logging.custom-error-pages` — resources/views/errors/500.blade.php and 503.blade.php must exist
+- `logging.sensitive-in-log-context` — Log context arrays must not contain password/token/secret keys
+
+**Repo & CI (`repo.*`)**
+- `repo.dependabot` — .github/dependabot.yml should exist for automated dep updates
+- `repo.gitleaks-history` — No high-entropy secrets in git history (last 100 commits)
+- `repo.debug-toolbars` — Debug packages (debugbar, telescope) must be in require-dev only
 
 **Dependencies (`dependencies.*`)**
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
