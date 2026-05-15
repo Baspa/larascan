@@ -15,7 +15,10 @@ abstract class AbstractCheck implements Check
 
     public function docsUrl(): string
     {
-        [$cat, $id] = explode('.', $this->id(), 2);
-        return "https://github.com/baspa/larascan/blob/main/docs/checks/{$cat}/{$id}.md";
+        $slug = str_contains($this->id(), '.')
+            ? explode('.', $this->id(), 2)[1]
+            : $this->id();
+
+        return "https://github.com/baspa/larascan/blob/main/docs/checks/{$this->category()->value}/{$slug}.md";
     }
 }
