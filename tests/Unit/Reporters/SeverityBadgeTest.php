@@ -11,7 +11,7 @@ it('returns a colored span for each severity', function () {
         expect($html)
             ->toStartWith('<span class="')
             ->toEndWith('</span>')
-            ->toContain('px-1');
+            ->toContain('w-10 text-center');
     }
 });
 

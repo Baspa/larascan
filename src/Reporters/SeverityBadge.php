@@ -19,6 +19,6 @@ final class SeverityBadge
             Severity::Info => 'bg-gray-500 text-white',
         };
 
-        return sprintf('<span class="%s px-1">%s</span>', $classes, $label);
+        return sprintf('<span class="%s w-10 text-center">%s</span>', $classes, $label);
     }
 }

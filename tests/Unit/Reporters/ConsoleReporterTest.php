@@ -49,3 +49,53 @@ it('renders termwind output with check ids visible', function () {
         ->toContain('cookies.session-secure')
         ->toContain('CRITICAL');
 });
+
+it('groups findings under a single check header and shows messages', function () {
+    $result = (new ScanResult)
+        ->record('config.env-example-sync', CheckStatus::Failed, [
+            new Finding('config.env-example-sync', Severity::Low, 'Keys missing from example: FOO'),
+            new Finding('config.env-example-sync', Severity::Low, 'Keys missing from env: BAR'),
+        ]);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    // Check ID appears once (as the header)
+    expect(substr_count($text, 'config.env-example-sync'))->toBe(1);
+    // Both finding messages appear
+    expect($text)->toContain('Keys missing from example: FOO')
+        ->toContain('Keys missing from env: BAR');
+});
+
+it('shows file:line for findings that have it', function () {
+    $result = (new ScanResult)
+        ->record('sql.raw-user-input', CheckStatus::Failed, [
+            new Finding(
+                checkId: 'sql.raw-user-input',
+                severity: Severity::Critical,
+                message: 'Raw SQL with user input',
+                file: 'app/Http/UserController.php',
+                line: 42,
+            ),
+        ]);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->toContain('app/Http/UserController.php:42');
+});
+
+it('groups checks under category headers', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->record('cookies.session-secure', CheckStatus::Passed, []);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->toContain('Application configuration')
+        ->toContain('Cookies & sessions');
+});
