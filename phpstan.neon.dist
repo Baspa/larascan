@@ -3,5 +3,7 @@ parameters:
     paths:
         - src
         - config
+    configDirectories:
+        - config
     tmpDir: build/phpstan
     treatPhpDocTypesAsCertain: false
