@@ -27,6 +27,7 @@ use Baspa\Larascan\Checks\Cookies\SessionLifetimeCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
 use Baspa\Larascan\Checks\Crypto\CipherNotPinnedCheck;
+use Baspa\Larascan\Checks\Crypto\HardcodedSecretCheck;
 use Baspa\Larascan\Checks\Crypto\WeakHashCheck;
 use Baspa\Larascan\Checks\Crypto\WeakRandomCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
@@ -127,6 +128,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             WeakHashCheck::class,
             WeakRandomCheck::class,
             CipherNotPinnedCheck::class,
+            HardcodedSecretCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -236,6 +238,11 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(CipherNotPinnedCheck::class, fn (): CipherNotPinnedCheck => new CipherNotPinnedCheck(
             configPath: $this->app->configPath(),
+        ));
+
+        $this->app->bind(HardcodedSecretCheck::class, fn (): HardcodedSecretCheck => new HardcodedSecretCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {

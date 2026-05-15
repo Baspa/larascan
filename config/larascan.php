@@ -42,6 +42,7 @@ return [
         'crypto.weak-hash' => ['enabled' => true],
         'crypto.weak-random' => ['enabled' => true],
         'crypto.cipher-not-pinned' => ['enabled' => true],
+        'crypto.hardcoded-secret' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],
