@@ -17,7 +17,8 @@ class ScanCommand extends Command
         {--fail-on= : Severity threshold for non-zero exit code (critical|high|medium|low|info)}
         {--check=* : Filter checks by ID pattern (e.g. cookies.*) — repeatable}
         {--category= : Filter checks by category}
-        {--ignore-errors : Force exit 0 even when checks error}';
+        {--ignore-errors : Force exit 0 even when checks error}
+        {--format= : Output format: termwind (default) or plain}';
 
     protected $description = 'Run larascan security scan';
 
@@ -58,7 +59,11 @@ class ScanCommand extends Command
         );
 
         $result = $larascan->scan($options);
-        $reporter->render($result, $this->output);
+        $reporter->render(
+            $result,
+            $this->output,
+            plain: $this->option('format') === 'plain',
+        );
 
         $counts = $result->counts();
         if ($counts['errored'] > 0 && ! $this->option('ignore-errors')) {
