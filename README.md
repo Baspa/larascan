@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — Phase 7 (AST-based XSS / Files / Injection / Crypto checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
+> **Status:** Pre-1.0 — Phase 8 (SQL injection checks) complete. 68 of 70 spec checks live.
 
 ## Install
 
@@ -113,6 +113,12 @@ After installing, the following checks are available by default:
 - `crypto.weak-random` — rand/mt_rand/uniqid for security tokens
 - `crypto.cipher-not-pinned` — config/app.php does not pin the cipher
 - `crypto.hardcoded-secret` — High-entropy secrets or known token patterns in code
+
+**SQL (`sql.*`)**
+- `sql.raw-user-input` — DB::raw / whereRaw / selectRaw with user input
+- `sql.raw-order-by` — orderByRaw with user input
+- `sql.variable-table-column` — Variable arguments to DB::table / from / select
+- `sql.validation-rule-injection` — Validation rules from variable source
 
 **Dependencies (`dependencies.*`)**
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
