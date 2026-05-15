@@ -42,6 +42,8 @@ use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
 use Baspa\Larascan\Checks\Injection\CommandInjectionCheck;
+use Baspa\Larascan\Checks\Injection\HostHeaderCheck;
+use Baspa\Larascan\Checks\Injection\OpenRedirectCheck;
 use Baspa\Larascan\Checks\Injection\ProcessShellCheck;
 use Baspa\Larascan\Checks\Injection\UnserializeCheck;
 use Baspa\Larascan\Checks\Logging\CustomErrorPagesCheck;
@@ -135,6 +137,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             CommandInjectionCheck::class,
             ProcessShellCheck::class,
             UnserializeCheck::class,
+            OpenRedirectCheck::class,
+            HostHeaderCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -262,6 +266,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(UnserializeCheck::class, fn (): UnserializeCheck => new UnserializeCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(OpenRedirectCheck::class, fn (): OpenRedirectCheck => new OpenRedirectCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));

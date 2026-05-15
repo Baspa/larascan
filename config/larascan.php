@@ -46,6 +46,8 @@ return [
         'injection.command' => ['enabled' => true],
         'injection.process-shell' => ['enabled' => true],
         'injection.unserialize' => ['enabled' => true],
+        'injection.open-redirect' => ['enabled' => true],
+        'injection.host-header' => ['enabled' => true],
         'csrf.middleware-disabled' => ['enabled' => true],
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],

@@ -19,6 +19,7 @@ it('runs the larascan command and shows the report', function () {
     $checks['headers.x-frame-options'] = ['enabled' => false];
     $checks['php.display-errors'] = ['enabled' => false];
     $checks['csrf.middleware-disabled'] = ['enabled' => false];
+    $checks['injection.host-header'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
@@ -73,6 +74,7 @@ it('accepts a valid --category filter', function () {
     config()->set('session.lifetime', 120);
     $checks = config('larascan.checks', []);
     $checks['php.display-errors'] = ['enabled' => false];
+    $checks['injection.host-header'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --category=config')
