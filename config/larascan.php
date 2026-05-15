@@ -73,6 +73,8 @@ return [
         'repo.debug-toolbars' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
+        'dependencies.minimum-stability-dev' => ['enabled' => true],
+        'dependencies.outdated-php' => ['enabled' => true],
     ],
 
     'ignore' => [

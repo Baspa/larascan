@@ -33,7 +33,9 @@ use Baspa\Larascan\Checks\Crypto\WeakRandomCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfMiddlewareDisabledCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
+use Baspa\Larascan\Checks\Dependencies\MinimumStabilityDevCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
+use Baspa\Larascan\Checks\Dependencies\OutdatedPhpCheck;
 use Baspa\Larascan\Checks\Files\PathTraversalCheck;
 use Baspa\Larascan\Checks\Files\PublicExecutableUploadsCheck;
 use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
@@ -163,6 +165,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             SqlValidationRuleInjectionCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
+            MinimumStabilityDevCheck::class,
+            OutdatedPhpCheck::class,
         ];
     }
 
@@ -349,6 +353,10 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(SqlValidationRuleInjectionCheck::class, fn (): SqlValidationRuleInjectionCheck => new SqlValidationRuleInjectionCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(MinimumStabilityDevCheck::class, fn (): MinimumStabilityDevCheck => new MinimumStabilityDevCheck(
+            basePath: $this->app->basePath(),
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {

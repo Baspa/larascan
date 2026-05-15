@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — Phase 8 (SQL injection checks) complete. 68 of 70 spec checks live.
+> **Status:** Pre-1.0 — All 70 spec checks live. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap to v1.0.
 
 ## Install
 
@@ -123,6 +123,8 @@ After installing, the following checks are available by default:
 **Dependencies (`dependencies.*`)**
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
 - `dependencies.npm-audit` — wraps `npm audit` when a `package.json` is present
+- `dependencies.minimum-stability-dev` — composer.json minimum-stability is 'dev' without prefer-stable
+- `dependencies.outdated-php` — PHP version at or near end-of-life
 
 ## Documentation
 
