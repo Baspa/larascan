@@ -67,6 +67,7 @@ use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawOrderByCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
+use Baspa\Larascan\Checks\Sql\SqlVariableTableColumnCheck;
 use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
@@ -157,6 +158,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             PublicExecutableUploadsCheck::class,
             SqlRawUserInputCheck::class,
             SqlRawOrderByCheck::class,
+            SqlVariableTableColumnCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -333,6 +335,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(SqlRawOrderByCheck::class, fn (): SqlRawOrderByCheck => new SqlRawOrderByCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(SqlVariableTableColumnCheck::class, fn (): SqlVariableTableColumnCheck => new SqlVariableTableColumnCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
