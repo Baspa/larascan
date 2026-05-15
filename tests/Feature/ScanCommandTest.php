@@ -39,3 +39,12 @@ it('accepts a valid --category filter', function () {
         ->expectsOutputToContain('larascan — security scan')
         ->assertExitCode(0);
 });
+
+it('exits 1 when a check fails at or above the --fail-on threshold', function () {
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $this->artisan('larascan --fail-on=critical')
+        ->expectsOutputToContain('config.app-debug')
+        ->assertExitCode(1);
+});
