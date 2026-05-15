@@ -26,6 +26,8 @@ return [
         'headers.x-content-type-options' => ['enabled' => true],
         'headers.x-frame-options' => ['enabled' => true],
         'headers.referrer-policy' => ['enabled' => true],
+        'headers.csp-defined' => ['enabled' => true],
+        'headers.csp-unsafe-inline' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
