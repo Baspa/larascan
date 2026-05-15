@@ -1,0 +1,33 @@
+{
+  "advisories": {
+    "symfony/http-kernel": [
+      {
+        "advisoryId": "PKSA-1111-1111-1111",
+        "packageName": "symfony/http-kernel",
+        "affectedVersions": ">=4.0.0,<4.4.50|>=5.0.0,<5.4.20|>=6.0.0,<6.2.6",
+        "title": "CVE-2022-24894: HttpKernel: Prevent storing cookie headers in HttpCache",
+        "cve": "CVE-2022-24894",
+        "link": "https://symfony.com/cve-2022-24894",
+        "reportedAt": "2023-02-01T08:00:00+00:00",
+        "sources": [{"name": "FriendsOfPHP/security-advisories", "remoteId": "symfony/http-kernel/CVE-2022-24894.yaml"}],
+        "severity": "medium",
+        "source": "FriendsOfPHP/security-advisories"
+      }
+    ],
+    "guzzlehttp/guzzle": [
+      {
+        "advisoryId": "PKSA-2222-2222-2222",
+        "packageName": "guzzlehttp/guzzle",
+        "affectedVersions": "<7.4.5|>=7.5.0,<7.5.1",
+        "title": "CVE-2023-29197: Failure to strip authorization header on HTTP downgrade",
+        "cve": "CVE-2023-29197",
+        "link": "https://github.com/advisories/GHSA-...",
+        "reportedAt": "2023-04-17T12:00:00+00:00",
+        "sources": [{"name": "GitHub", "remoteId": "GHSA-..."}],
+        "severity": "high",
+        "source": "GitHub"
+      }
+    ]
+  },
+  "abandoned": []
+}

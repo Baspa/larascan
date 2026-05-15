@@ -1,0 +1,29 @@
+{
+  "version": "1.50.0",
+  "results": [
+    {
+      "check_id": "larascan.blade-unescaped-request",
+      "path": "resources/views/profile.blade.php",
+      "start": {"line": 14, "col": 1, "offset": 220},
+      "end": {"line": 14, "col": 42, "offset": 261},
+      "extra": {
+        "message": "Unescaped Blade variable {!! $request->name !!} — likely XSS",
+        "severity": "ERROR",
+        "metadata": {"category": "security"}
+      }
+    },
+    {
+      "check_id": "larascan.dd-in-production",
+      "path": "app/Http/Controllers/UserController.php",
+      "start": {"line": 42, "col": 9, "offset": 1024},
+      "end": {"line": 42, "col": 22, "offset": 1037},
+      "extra": {
+        "message": "dd() call left in code",
+        "severity": "WARNING",
+        "metadata": {}
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {"scanned": ["app", "resources"]}
+}

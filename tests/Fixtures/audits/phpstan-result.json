@@ -1,0 +1,28 @@
+{
+  "totals": {"errors": 0, "file_errors": 2},
+  "files": {
+    "/app/app/Http/Controllers/UserController.php": {
+      "errors": 1,
+      "messages": [
+        {
+          "message": "Raw SQL query receives user input — possible SQL injection",
+          "line": 42,
+          "ignorable": false,
+          "identifier": "larascan.rawQueryUserInput"
+        }
+      ]
+    },
+    "/app/app/Models/User.php": {
+      "errors": 1,
+      "messages": [
+        {
+          "message": "Unguarded model — possible mass assignment",
+          "line": 12,
+          "ignorable": true,
+          "identifier": "larascan.unguardedModel"
+        }
+      ]
+    }
+  },
+  "errors": []
+}
