@@ -33,6 +33,8 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Models\ForceFillUserInputCheck;
+use Baspa\Larascan\Checks\Models\ForeignKeyFillableCheck;
 use Baspa\Larascan\Checks\Models\UnguardCallCheck;
 use Baspa\Larascan\Checks\Models\UnguardedModelCheck;
 use Baspa\Larascan\Checks\Php\AllowUrlFopenCheck;
@@ -97,6 +99,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             CsrfExceptSuspiciousCheck::class,
             UnguardedModelCheck::class,
             UnguardCallCheck::class,
+            ForeignKeyFillableCheck::class,
+            ForceFillUserInputCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -144,6 +148,16 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(UnguardCallCheck::class, fn (): UnguardCallCheck => new UnguardCallCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ForeignKeyFillableCheck::class, fn (): ForeignKeyFillableCheck => new ForeignKeyFillableCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(ForceFillUserInputCheck::class, fn (): ForceFillUserInputCheck => new ForceFillUserInputCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));

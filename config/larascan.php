@@ -39,6 +39,8 @@ return [
         'csrf.except-suspicious' => ['enabled' => true],
         'models.unguarded' => ['enabled' => true],
         'models.unguard-call' => ['enabled' => true],
+        'models.foreign-key-fillable' => ['enabled' => true],
+        'models.force-fill-user-input' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
