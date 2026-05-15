@@ -18,7 +18,7 @@ it('renders a passed, failed and skipped row plus summary', function () {
         ->record('dependencies.npm-audit', CheckStatus::Skipped, [], 'no package.json');
 
     $output = new BufferedOutput;
-    (new ConsoleReporter)->render($result, $output);
+    (new ConsoleReporter)->render($result, $output, plain: true);
 
     $text = $output->fetch();
     expect($text)
@@ -31,4 +31,21 @@ it('renders a passed, failed and skipped row plus summary', function () {
         ->toContain('Passed: 1')
         ->toContain('Failed: 1')
         ->toContain('Skipped: 1');
+});
+
+it('renders termwind output with check ids visible', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->record('cookies.session-secure', CheckStatus::Failed, [
+            new Finding('cookies.session-secure', Severity::Critical, 'SESSION_SECURE_COOKIE is false'),
+        ]);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+
+    $text = $output->fetch();
+    expect($text)
+        ->toContain('config.app-debug')
+        ->toContain('cookies.session-secure')
+        ->toContain('CRITICAL');
 });

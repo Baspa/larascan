@@ -90,3 +90,28 @@ it('exits 1 when a check fails at or above the --fail-on threshold', function ()
         ->expectsOutputToContain('config.app-debug')
         ->assertExitCode(1);
 });
+
+it('renders plain output when --format=plain', function () {
+    // Clean prod setup so no shipped check fires above the default fail_on=high.
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', false);
+    config()->set('session.secure', true);
+    config()->set('session.http_only', true);
+    config()->set('session.same_site', 'lax');
+    config()->set('session.encrypt', true);
+    config()->set('session.lifetime', 120);
+    $checks = config('larascan.checks', []);
+    $checks['headers.hsts'] = ['enabled' => false];
+    $checks['headers.x-content-type-options'] = ['enabled' => false];
+    $checks['headers.x-frame-options'] = ['enabled' => false];
+    $checks['php.display-errors'] = ['enabled' => false];
+    $checks['csrf.middleware-disabled'] = ['enabled' => false];
+    $checks['injection.host-header'] = ['enabled' => false];
+    config()->set('larascan.checks', $checks);
+
+    $this->artisan('larascan --format=plain')
+        ->expectsOutputToContain('larascan — security scan')
+        ->expectsOutputToContain('Report')
+        ->assertExitCode(0);
+});
