@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Baspa\Larascan;
 
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
+use Baspa\Larascan\Checks\Config\AppEnvCheck;
+use Baspa\Larascan\Checks\Config\AppKeyCheck;
 use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Commands\InstallCommand;
@@ -30,6 +32,8 @@ class LarascanServiceProvider extends PackageServiceProvider
     {
         return [
             AppDebugCheck::class,
+            AppKeyCheck::class,
+            AppEnvCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];

@@ -6,6 +6,8 @@ return [
     'fail_on' => 'high',
 
     'checks' => [
+        'config.app-key' => ['enabled' => true],
+        'config.app-env' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
