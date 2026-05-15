@@ -65,6 +65,7 @@ use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
+use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
 use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
@@ -153,6 +154,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             UnlinkUserInputCheck::class,
             UploadMimesValidationCheck::class,
             PublicExecutableUploadsCheck::class,
+            SqlRawUserInputCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -321,6 +323,11 @@ class LarascanServiceProvider extends PackageServiceProvider
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
             publicPath: $this->app->publicPath(),
+        ));
+
+        $this->app->bind(SqlRawUserInputCheck::class, fn (): SqlRawUserInputCheck => new SqlRawUserInputCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
         ));
 
         $this->app->singleton(CheckRegistry::class, function (): CheckRegistry {
