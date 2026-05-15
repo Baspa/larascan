@@ -32,6 +32,8 @@ use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
 use Baspa\Larascan\Checks\Php\AllowUrlFopenCheck;
 use Baspa\Larascan\Checks\Php\DisplayErrorsCheck;
 use Baspa\Larascan\Checks\Php\ExposePhpCheck;
+use Baspa\Larascan\Checks\Php\PhpinfoCheck;
+use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -81,6 +83,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ExposePhpCheck::class,
             DisplayErrorsCheck::class,
             AllowUrlFopenCheck::class,
+            PublicSensitiveFilesCheck::class,
+            PhpinfoCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -110,6 +114,15 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(EnvCallsOutsideConfigCheck::class, fn (): EnvCallsOutsideConfigCheck => new EnvCallsOutsideConfigCheck(
             basePath: $this->app->basePath(),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(PublicSensitiveFilesCheck::class, fn (): PublicSensitiveFilesCheck => new PublicSensitiveFilesCheck(
+            publicPath: $this->app->publicPath(),
+        ));
+
+        $this->app->bind(PhpinfoCheck::class, fn (): PhpinfoCheck => new PhpinfoCheck(
+            appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
 

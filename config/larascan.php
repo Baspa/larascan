@@ -31,6 +31,8 @@ return [
         'php.expose-php' => ['enabled' => true],
         'php.display-errors' => ['enabled' => true],
         'php.allow-url-fopen' => ['enabled' => true],
+        'php.public-sensitive-files' => ['enabled' => true],
+        'php.phpinfo' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
     ],
