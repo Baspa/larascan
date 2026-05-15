@@ -33,6 +33,9 @@ use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Checks\Headers\ReferrerPolicyCheck;
 use Baspa\Larascan\Checks\Headers\XContentTypeOptionsCheck;
 use Baspa\Larascan\Checks\Headers\XFrameOptionsCheck;
+use Baspa\Larascan\Checks\Logging\CustomErrorPagesCheck;
+use Baspa\Larascan\Checks\Logging\DdDumpDebugCheck;
+use Baspa\Larascan\Checks\Logging\SensitiveInLogContextCheck;
 use Baspa\Larascan\Checks\Models\ForceFillUserInputCheck;
 use Baspa\Larascan\Checks\Models\ForeignKeyFillableCheck;
 use Baspa\Larascan\Checks\Models\UnguardCallCheck;
@@ -101,6 +104,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             UnguardCallCheck::class,
             ForeignKeyFillableCheck::class,
             ForceFillUserInputCheck::class,
+            DdDumpDebugCheck::class,
+            CustomErrorPagesCheck::class,
+            SensitiveInLogContextCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
         ];
@@ -158,6 +164,20 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(ForceFillUserInputCheck::class, fn (): ForceFillUserInputCheck => new ForceFillUserInputCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(DdDumpDebugCheck::class, fn (): DdDumpDebugCheck => new DdDumpDebugCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(CustomErrorPagesCheck::class, fn (): CustomErrorPagesCheck => new CustomErrorPagesCheck(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(SensitiveInLogContextCheck::class, fn (): SensitiveInLogContextCheck => new SensitiveInLogContextCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
