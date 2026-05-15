@@ -7,6 +7,7 @@
 [![Latest Version](https://img.shields.io/packagist/v/baspa/larascan.svg?style=flat-square)](https://packagist.org/packages/baspa/larascan)
 [![Tests](https://img.shields.io/github/actions/workflow/status/baspa/larascan/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/baspa/larascan/actions/workflows/tests.yml)
 [![PHPStan](https://img.shields.io/github/actions/workflow/status/baspa/larascan/phpstan.yml?branch=main&label=phpstan%20level%208&style=flat-square)](https://github.com/baspa/larascan/actions/workflows/phpstan.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/baspa/larascan?style=flat-square)](https://codecov.io/gh/baspa/larascan)
 [![Downloads](https://img.shields.io/packagist/dt/baspa/larascan.svg?style=flat-square)](https://packagist.org/packages/baspa/larascan)
 [![License](https://img.shields.io/packagist/l/baspa/larascan.svg?style=flat-square)](LICENSE.md)
 
@@ -215,7 +216,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Tests must pass, PHPStan must be clean a
 
 ## Security
 
-If you discover a security issue, please email bas@ux.nl instead of opening a public issue.
+If you discover a security issue, please email hello@baspa.dev instead of opening a public issue.
 
 ## License
 

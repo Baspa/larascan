@@ -38,3 +38,31 @@ jobs:
 
       - name: Run Pest
         run: vendor/bin/pest
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: pest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: pcov
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run Pest with coverage
+        run: vendor/bin/pest --coverage --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
