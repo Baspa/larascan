@@ -6,7 +6,7 @@
 
 Security-focused static analysis for Laravel applications. One artisan command, ~70 checks across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
-> **Status:** Pre-1.0 — Phase 3 (Config checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
+> **Status:** Pre-1.0 — Phase 4 (Cookies checks) complete. See [docs/superpowers/plans](docs/superpowers/plans) for roadmap.
 
 ## Install
 
@@ -36,6 +36,15 @@ After installing, the following checks are available by default:
 - `config.log-level` — Default log channel must not be at debug in production
 - `config.debug-blacklist` — debug_blacklist must redact sensitive env keys when debug is on
 - `config.trusted-proxies` — Trusted proxies must not be wildcard
+
+**Cookies & sessions (`cookies.*`)**
+- `cookies.session-secure` — SESSION_SECURE_COOKIE must be true in production
+- `cookies.session-http-only` — SESSION_HTTP_ONLY must be true
+- `cookies.session-same-site` — SESSION_SAME_SITE must be lax or strict
+- `cookies.session-encrypt` — session.encrypt should be true
+- `cookies.session-lifetime` — session.lifetime must be within a reasonable range
+- `cookies.encrypt-middleware` — EncryptCookies middleware must be registered
+- `cookies.encrypt-excludes` — Sensitive cookies must not be in EncryptCookies::$except
 
 **Dependencies (`dependencies.*`)**
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
