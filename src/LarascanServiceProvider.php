@@ -180,6 +180,13 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasCommand(InstallCommand::class);
     }
 
+    public function packageBooted(): void
+    {
+        $this->publishes([
+            __DIR__.'/../resources/stubs/workflow.yml.stub' => base_path('.github/workflows/larascan.yml'),
+        ], 'larascan-workflow');
+    }
+
     public function packageRegistered(): void
     {
         $this->bindRunners();
