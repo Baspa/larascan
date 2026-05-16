@@ -70,6 +70,7 @@ use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
 use Baspa\Larascan\Checks\Repo\SecurityTxtCheck;
+use Baspa\Larascan\Checks\Routing\StateMutatingGetCheck;
 use Baspa\Larascan\Checks\Sql\OrWhereScopeBypassCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawOrderByCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
@@ -134,6 +135,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             SanctumExpirationCheck::class,
             CsrfMiddlewareDisabledCheck::class,
             CsrfExceptSuspiciousCheck::class,
+            StateMutatingGetCheck::class,
             UnguardedModelCheck::class,
             UnguardCallCheck::class,
             ForeignKeyFillableCheck::class,
