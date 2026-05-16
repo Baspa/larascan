@@ -51,9 +51,9 @@ afterEach(function () use ($AGENT_VARS) {
     }
 });
 
-it('runs the advise command with no advices and exits 0', function () {
+it('runs the advise command and exits 0', function () {
     $this->artisan('larascan:advise')
-        ->expectsOutputToContain('no advices configured')
+        ->expectsOutputToContain('larascan')
         ->assertExitCode(0);
 });
 

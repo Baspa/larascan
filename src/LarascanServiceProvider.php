@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\JwtMissingExpirationCheck;
@@ -89,6 +90,7 @@ use Baspa\Larascan\Commands\AdviseCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
+use Baspa\Larascan\Contracts\Advice;
 use Baspa\Larascan\Contracts\Check;
 use Baspa\Larascan\Reporters\AdviceConsoleReporter;
 use Baspa\Larascan\Support\AdviceRegistry;
@@ -192,6 +194,16 @@ class LarascanServiceProvider extends PackageServiceProvider
             NpmAuditCheck::class,
             MinimumStabilityDevCheck::class,
             OutdatedPhpCheck::class,
+        ];
+    }
+
+    /**
+     * @return array<int, class-string<Advice>>
+     */
+    private static function shippedAdvices(): array
+    {
+        return [
+            SignedUrlUserContextAdvice::class,
         ];
     }
 
@@ -435,11 +447,23 @@ class LarascanServiceProvider extends PackageServiceProvider
             return new Larascan($this->app->make(CheckRegistry::class));
         });
 
+        $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
         $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
             /** @var array<string, array{enabled?: bool}> $config */
             $config = $this->app->make('config')->get('larascan.advices', []);
+            $registry = new AdviceRegistry($config);
 
-            return new AdviceRegistry($config);
+            foreach (self::shippedAdvices() as $adviceClass) {
+                /** @var Advice $advice */
+                $advice = $this->app->make($adviceClass);
+                $registry->register($advice);
+            }
+
+            return $registry;
         });
 
         $this->app->singleton(Advise::class, function (): Advise {
