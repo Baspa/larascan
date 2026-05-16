@@ -66,6 +66,16 @@ php artisan larascan --fail-on=high   # CI threshold (exit 1 on findings ≥ hig
 php artisan larascan:list             # list all registered checks
 ```
 
+### Advise (heuristic, non-gating)
+
+```bash
+php artisan larascan:advise                  # surface heuristic security advisories
+php artisan larascan:advise --advice=advise.auth.*
+php artisan larascan:advise --category=auth
+```
+
+Advise is intentionally non-gating: exit code is always 0. For architectural items that no scanner can detect, see [`docs/manual-security-checklist.md`](docs/manual-security-checklist.md).
+
 ### Output formats
 
 | Flag | Default for | Description |

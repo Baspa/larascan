@@ -2,6 +2,22 @@
 
 All notable changes to `baspa/larascan` will be documented in this file.
 
+## [2.1.0] — 2026-05-16
+
+### Added
+
+- New `larascan:advise` command surfacing heuristic security advisories without gating CI (always exits 0).
+- `advise.signed-url-user-context` — signed URLs without user-bound route parameters.
+- `advise.password-reset-mfa` — password-reset routes without MFA middleware.
+- `advise.broadcast-channels-flags` — broadcast channels surfaced for manual authorization review.
+- `advise.outdated-packages` — direct-outdated composer and npm packages (shell-out).
+- `advise.config-validated-at-boot` — no service provider throws on missing critical config.
+- `advise.livewire-public-properties` — Livewire components with public properties lacking `protected $rules` or `#[Validate]` attributes.
+- `advise.staging-key-in-production` — test-prefixed API keys present alongside `APP_ENV=production`.
+- New `docs/manual-security-checklist.md` covering architectural items LaraScan cannot detect (2FA on sensitive actions, MFA recovery, early authorization, email-verification flows).
+
+All new advisories were inspired by [securinglaravel.com](https://securinglaravel.com/).
+
 ## [2.0.0] — 2026-05-16
 
 ### Added
