@@ -9,6 +9,7 @@ use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
 use Baspa\Larascan\Checks\Auth\OtpRateLimitingCheck;
 use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
+use Baspa\Larascan\Checks\Auth\RegistrationRateLimitCheck;
 use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
 use Baspa\Larascan\Checks\Auth\SignedRoutesVerifyCheck;
 use Baspa\Larascan\Checks\Auth\SignedUrlNoParamsCheck;
@@ -152,6 +153,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             SecurityTxtCheck::class,
             LoginThrottleCheck::class,
             OtpRateLimitingCheck::class,
+            RegistrationRateLimitCheck::class,
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
             SignedUrlNoParamsCheck::class,
