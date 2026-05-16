@@ -7,6 +7,7 @@ namespace Baspa\Larascan;
 use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
 use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
 use Baspa\Larascan\Advices\Config\ConfigValidatedAtBootAdvice;
+use Baspa\Larascan\Advices\Crypto\StagingKeyInProductionAdvice;
 use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
 use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
 use Baspa\Larascan\Advices\Xss\LivewirePublicPropertiesAdvice;
@@ -216,6 +217,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             OutdatedPackagesAdvice::class,
             ConfigValidatedAtBootAdvice::class,
             LivewirePublicPropertiesAdvice::class,
+            StagingKeyInProductionAdvice::class,
         ];
     }
 
@@ -482,6 +484,10 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(LivewirePublicPropertiesAdvice::class, fn (): LivewirePublicPropertiesAdvice => new LivewirePublicPropertiesAdvice(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
+        ));
+
+        $this->app->bind(StagingKeyInProductionAdvice::class, fn (): StagingKeyInProductionAdvice => new StagingKeyInProductionAdvice(
+            basePath: $this->app->basePath(),
         ));
 
         $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
