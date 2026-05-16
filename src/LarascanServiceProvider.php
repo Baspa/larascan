@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
 use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
@@ -204,6 +205,7 @@ class LarascanServiceProvider extends PackageServiceProvider
     {
         return [
             SignedUrlUserContextAdvice::class,
+            PasswordResetMfaAdvice::class,
         ];
     }
 
