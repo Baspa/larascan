@@ -69,6 +69,7 @@ use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
 use Baspa\Larascan\Checks\Repo\SecurityTxtCheck;
+use Baspa\Larascan\Checks\Sql\OrWhereScopeBypassCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawOrderByCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
 use Baspa\Larascan\Checks\Sql\SqlValidationRuleInjectionCheck;
@@ -169,6 +170,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             SqlRawOrderByCheck::class,
             SqlVariableTableColumnCheck::class,
             SqlValidationRuleInjectionCheck::class,
+            OrWhereScopeBypassCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
             MinimumStabilityDevCheck::class,
@@ -378,6 +380,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(SqlValidationRuleInjectionCheck::class, fn (): SqlValidationRuleInjectionCheck => new SqlValidationRuleInjectionCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(OrWhereScopeBypassCheck::class, fn (): OrWhereScopeBypassCheck => new OrWhereScopeBypassCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
