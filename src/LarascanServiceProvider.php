@@ -6,6 +6,7 @@ namespace Baspa\Larascan;
 
 use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
 use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
+use Baspa\Larascan\Advices\Config\ConfigValidatedAtBootAdvice;
 use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
 use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
@@ -212,6 +213,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             PasswordResetMfaAdvice::class,
             BroadcastChannelsFlagsAdvice::class,
             OutdatedPackagesAdvice::class,
+            ConfigValidatedAtBootAdvice::class,
         ];
     }
 
@@ -468,6 +470,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->bind(OutdatedPackagesAdvice::class, fn (): OutdatedPackagesAdvice => new OutdatedPackagesAdvice(
             composer: $this->app->make(ComposerOutdatedRunner::class),
             npm: $this->app->make(NpmOutdatedRunner::class),
+        ));
+
+        $this->app->bind(ConfigValidatedAtBootAdvice::class, fn (): ConfigValidatedAtBootAdvice => new ConfigValidatedAtBootAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
         ));
 
         $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
