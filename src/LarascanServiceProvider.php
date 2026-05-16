@@ -10,6 +10,7 @@ use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
 use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
 use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
 use Baspa\Larascan\Checks\Auth\SignedRoutesVerifyCheck;
+use Baspa\Larascan\Checks\Auth\SignedUrlNoParamsCheck;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
@@ -144,6 +145,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             LoginThrottleCheck::class,
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
+            SignedUrlNoParamsCheck::class,
             ApiAbilityScopingCheck::class,
             WeakHashCheck::class,
             WeakRandomCheck::class,
@@ -271,6 +273,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(SignedUrlNoParamsCheck::class, fn (): SignedUrlNoParamsCheck => new SignedUrlNoParamsCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
