@@ -85,10 +85,13 @@ use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCastCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
+use Baspa\Larascan\Commands\AdviseCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Contracts\Check;
+use Baspa\Larascan\Reporters\AdviceConsoleReporter;
+use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\CheckRegistry;
 use Baspa\Larascan\Support\FileParser;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
@@ -199,7 +202,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasConfigFile('larascan')
             ->hasCommand(ScanCommand::class)
             ->hasCommand(ListChecksCommand::class)
-            ->hasCommand(InstallCommand::class);
+            ->hasCommand(InstallCommand::class)
+            ->hasCommand(AdviseCommand::class);
     }
 
     public function packageBooted(): void
@@ -430,6 +434,19 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->singleton(Larascan::class, function (): Larascan {
             return new Larascan($this->app->make(CheckRegistry::class));
         });
+
+        $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
+            /** @var array<string, array{enabled?: bool}> $config */
+            $config = $this->app->make('config')->get('larascan.advices', []);
+
+            return new AdviceRegistry($config);
+        });
+
+        $this->app->singleton(Advise::class, function (): Advise {
+            return new Advise($this->app->make(AdviceRegistry::class));
+        });
+
+        $this->app->singleton(AdviceConsoleReporter::class, fn (): AdviceConsoleReporter => new AdviceConsoleReporter);
     }
 
     /**
