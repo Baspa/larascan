@@ -2,6 +2,25 @@
 
 All notable changes to `baspa/larascan` will be documented in this file.
 
+## [2.0.0] — 2026-05-16
+
+### Added
+
+- New `Routing` category.
+- `routing.state-mutating-get` — flag GET routes whose controller method is `destroy`/`delete`/`remove`/`deactivate`/`disable`.
+- `routing.api-http-only` — flag API routes without HTTPS-enforcing middleware when `APP_URL` is `http://`. Severity downgrades outside production.
+- `auth.signed-url-no-params` — flag `URL::signedRoute()` / `URL::temporarySignedRoute()` calls without route parameters.
+- `auth.otp-rate-limiting` — flag OTP/2FA verification routes without `throttle:` middleware.
+- `auth.registration-rate-limit` — flag registration routes without `throttle:` middleware. Severity downgrades outside production.
+- `auth.jwt-missing-expiration` — flag Tymon JWT installations where `config('jwt.ttl')` is null or 0.
+- `headers.csp-base-uri` — flag Spatie CSP policies that do not set a `base-uri` directive.
+- `sql.orwhere-scope-bypass` — flag `->orWhere(...)` chained directly off `->where(...)` outside a closure group.
+- `xss.htmlstring-cast` — flag Eloquent casts using `HtmlString::class`.
+- `crypto.password-self-generated` — flag weak generators (`Str::random`, `md5`, `uniqid`, `random_bytes`, `bin2hex`) used in password contexts.
+- `repo.security-txt` — flag missing `public/.well-known/security.txt`.
+
+All new checks were inspired by [securinglaravel.com](https://securinglaravel.com/).
+
 ## [1.0.0] - 2026-05-15
 
 ### Initial release

@@ -11,7 +11,7 @@
 [![Downloads](https://img.shields.io/packagist/dt/baspa/larascan.svg?style=flat-square)](https://packagist.org/packages/baspa/larascan)
 [![License](https://img.shields.io/packagist/l/baspa/larascan.svg?style=flat-square)](LICENSE.md)
 
-Security-focused static analysis for Laravel applications. One artisan command, **70 checks** across config, cookies, headers, auth, models, SQL, XSS, files, injection, crypto, dependencies and more.
+Security-focused static analysis for Laravel applications. One artisan command, **81 checks** across config, cookies, headers, auth, routing, models, SQL, XSS, files, injection, crypto, dependencies and more.
 
 > **Why LaraScan?** Most Laravel security issues come from misconfiguration or forgotten dev settings in production — debug on, secure cookies off, hardcoded API keys in code. LaraScan scans for them in one shot, AST-based where it matters, with sane defaults and a clean CI workflow.
 
@@ -98,10 +98,10 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 
 ## What's checked?
 
-70 checks across 15 categories. Some require optional packages — those checks self-skip when the package isn't installed.
+81 checks across 16 categories. Some require optional packages — those checks self-skip when the package isn't installed.
 
 <details>
-<summary><strong>Show all 70 checks</strong></summary>
+<summary><strong>Show all 81 checks</strong></summary>
 
 **Config (`config.*`)** — 9
 - `config.app-debug` — APP_DEBUG must be false in production
@@ -123,7 +123,7 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `cookies.encrypt-middleware` — EncryptCookies middleware must be registered
 - `cookies.encrypt-excludes` — Sensitive cookies must not be in EncryptCookies::$except
 
-**Headers (`headers.*`)** — 7
+**Headers (`headers.*`)** — 8
 - `headers.cors-wildcard` — CORS allowed_origins must not be wildcard with credentials enabled
 - `headers.hsts` — HSTS header middleware must be active in production
 - `headers.x-content-type-options` — X-Content-Type-Options: nosniff middleware must be active
@@ -131,18 +131,27 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `headers.referrer-policy` — Referrer-Policy header middleware should be active
 - `headers.csp-defined` — CSP middleware must be active *(requires [spatie/laravel-csp](https://github.com/spatie/laravel-csp))*
 - `headers.csp-unsafe-inline` — CSP must not use unsafe-inline or unsafe-eval *(requires spatie/laravel-csp)*
+- `headers.csp-base-uri` — Spatie CSP policy must include a `base-uri` directive
 
-**Auth (`auth.*`)** — 6
+**Auth (`auth.*`)** — 10
 - `auth.bcrypt-rounds` — BCRYPT_ROUNDS must be 12 or higher
 - `auth.sanctum-expiration` — Sanctum tokens must have an expiration *(requires [laravel/sanctum](https://github.com/laravel/sanctum))*
 - `auth.login-throttle` — Login routes must have throttle middleware
 - `auth.password-column-plain` — User model must hide or hash the password column
 - `auth.signed-routes-verify` — Email verification routes must use signed middleware
 - `auth.api-ability-scoping` — Sanctum tokens must be created with explicit abilities *(requires laravel/sanctum)*
+- `auth.signed-url-no-params` — Signed URLs must include user-bound route parameters
+- `auth.otp-rate-limiting` — OTP/2FA verification routes must have `throttle:` middleware
+- `auth.registration-rate-limit` — Registration routes must have `throttle:` middleware
+- `auth.jwt-missing-expiration` — Tymon JWT `jwt.ttl` must not be null or 0
 
 **CSRF (`csrf.*`)** — 2
 - `csrf.middleware-disabled` — VerifyCsrfToken middleware must be registered
 - `csrf.except-suspicious` — CSRF except list must not contain wildcard patterns
+
+**Routing (`routing.*`)** — 2
+- `routing.state-mutating-get` — GET routes must not invoke `destroy`/`delete`/`remove`/`deactivate`/`disable` controller methods
+- `routing.api-http-only` — API routes under `api/*` must enforce HTTPS when `APP_URL` is `http://`
 
 **Models (`models.*`)** — 4
 - `models.unguarded` — Eloquent models must not use `$guarded = []`
@@ -150,16 +159,18 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `models.foreign-key-fillable` — Foreign key columns should not be in `$fillable`
 - `models.force-fill-user-input` — `forceFill()` calls bypass mass-assignment protection
 
-**SQL (`sql.*`)** — 4
+**SQL (`sql.*`)** — 5
 - `sql.raw-user-input` — DB::raw / whereRaw / selectRaw with user input
 - `sql.raw-order-by` — orderByRaw with user input
 - `sql.variable-table-column` — Variable arguments to DB::table / from / select
 - `sql.validation-rule-injection` — Validation rules from variable source
+- `sql.orwhere-scope-bypass` — `->orWhere(...)` must not be chained directly off `->where(...)` outside a closure group
 
-**XSS (`xss.*`)** — 3
+**XSS (`xss.*`)** — 4
 - `xss.blade-unescaped` — Blade `{!! $var !!}` with PHP variables risks XSS
 - `xss.html-string` — `Illuminate\Support\HtmlString` produces unescaped HTML
 - `xss.url-javascript-protocol` — `javascript:` URLs in href/src are XSS sinks
+- `xss.htmlstring-cast` — Eloquent `$casts` / `casts()` must not cast attributes to `HtmlString::class`
 
 **Files (`files.*`)** — 4
 - `files.path-traversal` — Storage/File operations with user-controlled paths
@@ -174,11 +185,12 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `injection.open-redirect` — `redirect()` with user-controlled URL
 - `injection.host-header` — `app.url` missing or pointing to localhost
 
-**Crypto & secrets (`crypto.*`)** — 4
+**Crypto & secrets (`crypto.*`)** — 5
 - `crypto.weak-hash` — md5/sha1 for security purposes
 - `crypto.weak-random` — rand/mt_rand/uniqid for security tokens
 - `crypto.cipher-not-pinned` — `config/app.php` does not pin the cipher
 - `crypto.hardcoded-secret` — High-entropy secrets or known token patterns in code
+- `crypto.password-self-generated` — Weak generators (`Str::random`, `md5`, `uniqid`, `random_bytes`, `bin2hex`) must not be used in password contexts — use `Str::password()`
 
 **Dependencies (`dependencies.*`)** — 4
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
@@ -198,10 +210,11 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `logging.custom-error-pages` — `resources/views/errors/500.blade.php` and `503.blade.php` must exist
 - `logging.sensitive-in-log-context` — Log context arrays must not contain password/token/secret keys
 
-**Repo & CI (`repo.*`)** — 3
+**Repo & CI (`repo.*`)** — 4
 - `repo.dependabot` — `.github/dependabot.yml` should exist for automated dep updates
 - `repo.gitleaks-history` — No high-entropy secrets in git history (last 100 commits)
 - `repo.debug-toolbars` — Debug packages (debugbar, telescope) must be in `require-dev` only
+- `repo.security-txt` — `public/.well-known/security.txt` should exist so researchers know how to report issues
 
 </details>
 
