@@ -6,6 +6,7 @@ namespace Baspa\Larascan;
 
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
+use Baspa\Larascan\Checks\Auth\JwtMissingExpirationCheck;
 use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
 use Baspa\Larascan\Checks\Auth\OtpRateLimitingCheck;
 use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
@@ -136,6 +137,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             PhpinfoCheck::class,
             BcryptRoundsCheck::class,
             SanctumExpirationCheck::class,
+            JwtMissingExpirationCheck::class,
             CsrfMiddlewareDisabledCheck::class,
             CsrfExceptSuspiciousCheck::class,
             StateMutatingGetCheck::class,
