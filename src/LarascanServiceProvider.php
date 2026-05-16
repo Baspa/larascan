@@ -29,6 +29,7 @@ use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
 use Baspa\Larascan\Checks\Crypto\CipherNotPinnedCheck;
 use Baspa\Larascan\Checks\Crypto\HardcodedSecretCheck;
+use Baspa\Larascan\Checks\Crypto\PasswordSelfGeneratedCheck;
 use Baspa\Larascan\Checks\Crypto\WeakHashCheck;
 use Baspa\Larascan\Checks\Crypto\WeakRandomCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
@@ -153,6 +154,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             WeakRandomCheck::class,
             CipherNotPinnedCheck::class,
             HardcodedSecretCheck::class,
+            PasswordSelfGeneratedCheck::class,
             CommandInjectionCheck::class,
             ProcessShellCheck::class,
             UnserializeCheck::class,
@@ -301,6 +303,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(HardcodedSecretCheck::class, fn (): HardcodedSecretCheck => new HardcodedSecretCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(PasswordSelfGeneratedCheck::class, fn (): PasswordSelfGeneratedCheck => new PasswordSelfGeneratedCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
