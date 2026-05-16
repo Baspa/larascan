@@ -9,6 +9,7 @@ use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
 use Baspa\Larascan\Advices\Config\ConfigValidatedAtBootAdvice;
 use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
 use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
+use Baspa\Larascan\Advices\Xss\LivewirePublicPropertiesAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\JwtMissingExpirationCheck;
@@ -214,6 +215,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             BroadcastChannelsFlagsAdvice::class,
             OutdatedPackagesAdvice::class,
             ConfigValidatedAtBootAdvice::class,
+            LivewirePublicPropertiesAdvice::class,
         ];
     }
 
@@ -473,6 +475,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(ConfigValidatedAtBootAdvice::class, fn (): ConfigValidatedAtBootAdvice => new ConfigValidatedAtBootAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(LivewirePublicPropertiesAdvice::class, fn (): LivewirePublicPropertiesAdvice => new LivewirePublicPropertiesAdvice(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
