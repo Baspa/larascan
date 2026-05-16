@@ -67,6 +67,7 @@ use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
+use Baspa\Larascan\Checks\Repo\SecurityTxtCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawOrderByCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
 use Baspa\Larascan\Checks\Sql\SqlValidationRuleInjectionCheck;
@@ -139,6 +140,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             DependabotCheck::class,
             GitleaksHistoryCheck::class,
             DebugToolbarsCheck::class,
+            SecurityTxtCheck::class,
             LoginThrottleCheck::class,
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
@@ -257,6 +259,10 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(DebugToolbarsCheck::class, fn (): DebugToolbarsCheck => new DebugToolbarsCheck(
             basePath: $this->app->basePath(),
+        ));
+
+        $this->app->bind(SecurityTxtCheck::class, fn (): SecurityTxtCheck => new SecurityTxtCheck(
+            publicPath: $this->app->publicPath(),
         ));
 
         $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
