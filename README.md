@@ -218,6 +218,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Tests must pass, PHPStan must be clean a
 
 If you discover a security issue, please email hello@baspa.dev instead of opening a public issue.
 
+## Inspired by
+
+- [Enlightn](https://github.com/enlightn/enlightn) — the original Laravel performance + security scanner. Its analyzer-per-check pattern and report card concept shaped how LaraScan is structured.
+- [Securing Laravel](https://securinglaravel.com/) — Stephen Rees-Carter's writing and newsletter, the practical reference for what to check and why it matters.
+
 ## License
 
 The MIT License (MIT). See [LICENSE.md](LICENSE.md).
