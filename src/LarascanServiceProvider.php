@@ -74,6 +74,7 @@ use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
 use Baspa\Larascan\Checks\Sql\SqlValidationRuleInjectionCheck;
 use Baspa\Larascan\Checks\Sql\SqlVariableTableColumnCheck;
 use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
+use Baspa\Larascan\Checks\Xss\HtmlStringCastCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
 use Baspa\Larascan\Commands\InstallCommand;
@@ -158,6 +159,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             HostHeaderCheck::class,
             BladeUnescapedCheck::class,
             HtmlStringCheck::class,
+            HtmlStringCastCheck::class,
             UrlJavascriptProtocolCheck::class,
             PathTraversalCheck::class,
             UnlinkUserInputCheck::class,
@@ -326,6 +328,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(HtmlStringCheck::class, fn (): HtmlStringCheck => new HtmlStringCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(HtmlStringCastCheck::class, fn (): HtmlStringCastCheck => new HtmlStringCastCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
