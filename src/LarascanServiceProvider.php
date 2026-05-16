@@ -6,6 +6,7 @@ namespace Baspa\Larascan;
 
 use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
 use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
+use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
 use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
@@ -99,7 +100,9 @@ use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\CheckRegistry;
 use Baspa\Larascan\Support\FileParser;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
+use Baspa\Larascan\Tools\ComposerOutdatedRunner;
 use Baspa\Larascan\Tools\NpmAuditRunner;
+use Baspa\Larascan\Tools\NpmOutdatedRunner;
 use Baspa\Larascan\Tools\PhpStanRunner;
 use Baspa\Larascan\Tools\SemgrepRunner;
 use Spatie\LaravelPackageTools\Package;
@@ -208,6 +211,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             SignedUrlUserContextAdvice::class,
             PasswordResetMfaAdvice::class,
             BroadcastChannelsFlagsAdvice::class,
+            OutdatedPackagesAdvice::class,
         ];
     }
 
@@ -461,6 +465,11 @@ class LarascanServiceProvider extends PackageServiceProvider
             parser: new FileParser,
         ));
 
+        $this->app->bind(OutdatedPackagesAdvice::class, fn (): OutdatedPackagesAdvice => new OutdatedPackagesAdvice(
+            composer: $this->app->make(ComposerOutdatedRunner::class),
+            npm: $this->app->make(NpmOutdatedRunner::class),
+        ));
+
         $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
             /** @var array<string, array{enabled?: bool}> $config */
             $config = $this->app->make('config')->get('larascan.advices', []);
@@ -495,6 +504,16 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(NpmAuditRunner::class, fn (): NpmAuditRunner => new NpmAuditRunner(
+            workingDir: $this->app->basePath(),
+            binary: $this->resolveToolBinary('npm'),
+        ));
+
+        $this->app->bind(ComposerOutdatedRunner::class, fn (): ComposerOutdatedRunner => new ComposerOutdatedRunner(
+            workingDir: $this->app->basePath(),
+            binary: $this->resolveToolBinary('composer'),
+        ));
+
+        $this->app->bind(NpmOutdatedRunner::class, fn (): NpmOutdatedRunner => new NpmOutdatedRunner(
             workingDir: $this->app->basePath(),
             binary: $this->resolveToolBinary('npm'),
         ));
