@@ -46,6 +46,7 @@ use Baspa\Larascan\Checks\Files\PublicExecutableUploadsCheck;
 use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
 use Baspa\Larascan\Checks\Files\UploadMimesValidationCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
+use Baspa\Larascan\Checks\Headers\CspBaseUriCheck;
 use Baspa\Larascan\Checks\Headers\CspDefinedCheck;
 use Baspa\Larascan\Checks\Headers\CspUnsafeInlineCheck;
 use Baspa\Larascan\Checks\Headers\HstsCheck;
@@ -130,6 +131,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             ReferrerPolicyCheck::class,
             CspDefinedCheck::class,
             CspUnsafeInlineCheck::class,
+            CspBaseUriCheck::class,
             ExposePhpCheck::class,
             DisplayErrorsCheck::class,
             AllowUrlFopenCheck::class,
