@@ -7,6 +7,7 @@ namespace Baspa\Larascan;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
+use Baspa\Larascan\Checks\Auth\OtpRateLimitingCheck;
 use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
 use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
 use Baspa\Larascan\Checks\Auth\SignedRoutesVerifyCheck;
@@ -150,6 +151,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             DebugToolbarsCheck::class,
             SecurityTxtCheck::class,
             LoginThrottleCheck::class,
+            OtpRateLimitingCheck::class,
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
             SignedUrlNoParamsCheck::class,
