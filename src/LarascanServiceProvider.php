@@ -6,6 +6,7 @@ namespace Baspa\Larascan;
 
 use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
 use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
+use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\JwtMissingExpirationCheck;
@@ -206,6 +207,7 @@ class LarascanServiceProvider extends PackageServiceProvider
         return [
             SignedUrlUserContextAdvice::class,
             PasswordResetMfaAdvice::class,
+            BroadcastChannelsFlagsAdvice::class,
         ];
     }
 
@@ -451,6 +453,11 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(
             appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(BroadcastChannelsFlagsAdvice::class, fn (): BroadcastChannelsFlagsAdvice => new BroadcastChannelsFlagsAdvice(
+            basePath: $this->app->basePath(),
             parser: new FileParser,
         ));
 
