@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
+use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
+use Baspa\Larascan\Advices\Config\ConfigValidatedAtBootAdvice;
+use Baspa\Larascan\Advices\Crypto\StagingKeyInProductionAdvice;
+use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
+use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
+use Baspa\Larascan\Advices\Xss\LivewirePublicPropertiesAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
 use Baspa\Larascan\Checks\Auth\JwtMissingExpirationCheck;
@@ -85,14 +92,20 @@ use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCastCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
+use Baspa\Larascan\Commands\AdviseCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
+use Baspa\Larascan\Contracts\Advice;
 use Baspa\Larascan\Contracts\Check;
+use Baspa\Larascan\Reporters\AdviceConsoleReporter;
+use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\CheckRegistry;
 use Baspa\Larascan\Support\FileParser;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
+use Baspa\Larascan\Tools\ComposerOutdatedRunner;
 use Baspa\Larascan\Tools\NpmAuditRunner;
+use Baspa\Larascan\Tools\NpmOutdatedRunner;
 use Baspa\Larascan\Tools\PhpStanRunner;
 use Baspa\Larascan\Tools\SemgrepRunner;
 use Spatie\LaravelPackageTools\Package;
@@ -192,6 +205,22 @@ class LarascanServiceProvider extends PackageServiceProvider
         ];
     }
 
+    /**
+     * @return array<int, class-string<Advice>>
+     */
+    private static function shippedAdvices(): array
+    {
+        return [
+            SignedUrlUserContextAdvice::class,
+            PasswordResetMfaAdvice::class,
+            BroadcastChannelsFlagsAdvice::class,
+            OutdatedPackagesAdvice::class,
+            ConfigValidatedAtBootAdvice::class,
+            LivewirePublicPropertiesAdvice::class,
+            StagingKeyInProductionAdvice::class,
+        ];
+    }
+
     public function configurePackage(Package $package): void
     {
         $package
@@ -199,7 +228,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasConfigFile('larascan')
             ->hasCommand(ScanCommand::class)
             ->hasCommand(ListChecksCommand::class)
-            ->hasCommand(InstallCommand::class);
+            ->hasCommand(InstallCommand::class)
+            ->hasCommand(AdviseCommand::class);
     }
 
     public function packageBooted(): void
@@ -430,6 +460,55 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->singleton(Larascan::class, function (): Larascan {
             return new Larascan($this->app->make(CheckRegistry::class));
         });
+
+        $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(BroadcastChannelsFlagsAdvice::class, fn (): BroadcastChannelsFlagsAdvice => new BroadcastChannelsFlagsAdvice(
+            basePath: $this->app->basePath(),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(OutdatedPackagesAdvice::class, fn (): OutdatedPackagesAdvice => new OutdatedPackagesAdvice(
+            composer: $this->app->make(ComposerOutdatedRunner::class),
+            npm: $this->app->make(NpmOutdatedRunner::class),
+        ));
+
+        $this->app->bind(ConfigValidatedAtBootAdvice::class, fn (): ConfigValidatedAtBootAdvice => new ConfigValidatedAtBootAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(LivewirePublicPropertiesAdvice::class, fn (): LivewirePublicPropertiesAdvice => new LivewirePublicPropertiesAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(StagingKeyInProductionAdvice::class, fn (): StagingKeyInProductionAdvice => new StagingKeyInProductionAdvice(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
+            /** @var array<string, array{enabled?: bool}> $config */
+            $config = $this->app->make('config')->get('larascan.advices', []);
+            $registry = new AdviceRegistry($config);
+
+            foreach (self::shippedAdvices() as $adviceClass) {
+                /** @var Advice $advice */
+                $advice = $this->app->make($adviceClass);
+                $registry->register($advice);
+            }
+
+            return $registry;
+        });
+
+        $this->app->singleton(Advise::class, function (): Advise {
+            return new Advise($this->app->make(AdviceRegistry::class));
+        });
+
+        $this->app->singleton(AdviceConsoleReporter::class, fn (): AdviceConsoleReporter => new AdviceConsoleReporter);
     }
 
     /**
@@ -445,6 +524,16 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(NpmAuditRunner::class, fn (): NpmAuditRunner => new NpmAuditRunner(
+            workingDir: $this->app->basePath(),
+            binary: $this->resolveToolBinary('npm'),
+        ));
+
+        $this->app->bind(ComposerOutdatedRunner::class, fn (): ComposerOutdatedRunner => new ComposerOutdatedRunner(
+            workingDir: $this->app->basePath(),
+            binary: $this->resolveToolBinary('composer'),
+        ));
+
+        $this->app->bind(NpmOutdatedRunner::class, fn (): NpmOutdatedRunner => new NpmOutdatedRunner(
             workingDir: $this->app->basePath(),
             binary: $this->resolveToolBinary('npm'),
         ));
