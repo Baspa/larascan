@@ -4,12 +4,23 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan;
 
+use Baspa\Larascan\Advices\Auth\PasswordResetMfaAdvice;
+use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
+use Baspa\Larascan\Advices\Config\ConfigValidatedAtBootAdvice;
+use Baspa\Larascan\Advices\Crypto\StagingKeyInProductionAdvice;
+use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
+use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
+use Baspa\Larascan\Advices\Xss\LivewirePublicPropertiesAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
 use Baspa\Larascan\Checks\Auth\BcryptRoundsCheck;
+use Baspa\Larascan\Checks\Auth\JwtMissingExpirationCheck;
 use Baspa\Larascan\Checks\Auth\LoginThrottleCheck;
+use Baspa\Larascan\Checks\Auth\OtpRateLimitingCheck;
 use Baspa\Larascan\Checks\Auth\PasswordColumnPlainCheck;
+use Baspa\Larascan\Checks\Auth\RegistrationRateLimitCheck;
 use Baspa\Larascan\Checks\Auth\SanctumExpirationCheck;
 use Baspa\Larascan\Checks\Auth\SignedRoutesVerifyCheck;
+use Baspa\Larascan\Checks\Auth\SignedUrlNoParamsCheck;
 use Baspa\Larascan\Checks\Config\AppDebugCheck;
 use Baspa\Larascan\Checks\Config\AppEnvCheck;
 use Baspa\Larascan\Checks\Config\AppKeyCheck;
@@ -28,6 +39,7 @@ use Baspa\Larascan\Checks\Cookies\SessionSameSiteCheck;
 use Baspa\Larascan\Checks\Cookies\SessionSecureCheck;
 use Baspa\Larascan\Checks\Crypto\CipherNotPinnedCheck;
 use Baspa\Larascan\Checks\Crypto\HardcodedSecretCheck;
+use Baspa\Larascan\Checks\Crypto\PasswordSelfGeneratedCheck;
 use Baspa\Larascan\Checks\Crypto\WeakHashCheck;
 use Baspa\Larascan\Checks\Crypto\WeakRandomCheck;
 use Baspa\Larascan\Checks\Csrf\CsrfExceptSuspiciousCheck;
@@ -41,6 +53,7 @@ use Baspa\Larascan\Checks\Files\PublicExecutableUploadsCheck;
 use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
 use Baspa\Larascan\Checks\Files\UploadMimesValidationCheck;
 use Baspa\Larascan\Checks\Headers\CorsWildcardCheck;
+use Baspa\Larascan\Checks\Headers\CspBaseUriCheck;
 use Baspa\Larascan\Checks\Headers\CspDefinedCheck;
 use Baspa\Larascan\Checks\Headers\CspUnsafeInlineCheck;
 use Baspa\Larascan\Checks\Headers\HstsCheck;
@@ -67,21 +80,32 @@ use Baspa\Larascan\Checks\Php\PublicSensitiveFilesCheck;
 use Baspa\Larascan\Checks\Repo\DebugToolbarsCheck;
 use Baspa\Larascan\Checks\Repo\DependabotCheck;
 use Baspa\Larascan\Checks\Repo\GitleaksHistoryCheck;
+use Baspa\Larascan\Checks\Repo\SecurityTxtCheck;
+use Baspa\Larascan\Checks\Routing\ApiHttpOnlyCheck;
+use Baspa\Larascan\Checks\Routing\StateMutatingGetCheck;
+use Baspa\Larascan\Checks\Sql\OrWhereScopeBypassCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawOrderByCheck;
 use Baspa\Larascan\Checks\Sql\SqlRawUserInputCheck;
 use Baspa\Larascan\Checks\Sql\SqlValidationRuleInjectionCheck;
 use Baspa\Larascan\Checks\Sql\SqlVariableTableColumnCheck;
 use Baspa\Larascan\Checks\Xss\BladeUnescapedCheck;
+use Baspa\Larascan\Checks\Xss\HtmlStringCastCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
+use Baspa\Larascan\Commands\AdviseCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
+use Baspa\Larascan\Contracts\Advice;
 use Baspa\Larascan\Contracts\Check;
+use Baspa\Larascan\Reporters\AdviceConsoleReporter;
+use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\CheckRegistry;
 use Baspa\Larascan\Support\FileParser;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
+use Baspa\Larascan\Tools\ComposerOutdatedRunner;
 use Baspa\Larascan\Tools\NpmAuditRunner;
+use Baspa\Larascan\Tools\NpmOutdatedRunner;
 use Baspa\Larascan\Tools\PhpStanRunner;
 use Baspa\Larascan\Tools\SemgrepRunner;
 use Spatie\LaravelPackageTools\Package;
@@ -120,6 +144,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             ReferrerPolicyCheck::class,
             CspDefinedCheck::class,
             CspUnsafeInlineCheck::class,
+            CspBaseUriCheck::class,
             ExposePhpCheck::class,
             DisplayErrorsCheck::class,
             AllowUrlFopenCheck::class,
@@ -127,8 +152,11 @@ class LarascanServiceProvider extends PackageServiceProvider
             PhpinfoCheck::class,
             BcryptRoundsCheck::class,
             SanctumExpirationCheck::class,
+            JwtMissingExpirationCheck::class,
             CsrfMiddlewareDisabledCheck::class,
             CsrfExceptSuspiciousCheck::class,
+            StateMutatingGetCheck::class,
+            ApiHttpOnlyCheck::class,
             UnguardedModelCheck::class,
             UnguardCallCheck::class,
             ForeignKeyFillableCheck::class,
@@ -139,14 +167,19 @@ class LarascanServiceProvider extends PackageServiceProvider
             DependabotCheck::class,
             GitleaksHistoryCheck::class,
             DebugToolbarsCheck::class,
+            SecurityTxtCheck::class,
             LoginThrottleCheck::class,
+            OtpRateLimitingCheck::class,
+            RegistrationRateLimitCheck::class,
             PasswordColumnPlainCheck::class,
             SignedRoutesVerifyCheck::class,
+            SignedUrlNoParamsCheck::class,
             ApiAbilityScopingCheck::class,
             WeakHashCheck::class,
             WeakRandomCheck::class,
             CipherNotPinnedCheck::class,
             HardcodedSecretCheck::class,
+            PasswordSelfGeneratedCheck::class,
             CommandInjectionCheck::class,
             ProcessShellCheck::class,
             UnserializeCheck::class,
@@ -154,6 +187,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             HostHeaderCheck::class,
             BladeUnescapedCheck::class,
             HtmlStringCheck::class,
+            HtmlStringCastCheck::class,
             UrlJavascriptProtocolCheck::class,
             PathTraversalCheck::class,
             UnlinkUserInputCheck::class,
@@ -163,10 +197,27 @@ class LarascanServiceProvider extends PackageServiceProvider
             SqlRawOrderByCheck::class,
             SqlVariableTableColumnCheck::class,
             SqlValidationRuleInjectionCheck::class,
+            OrWhereScopeBypassCheck::class,
             ComposerAuditCheck::class,
             NpmAuditCheck::class,
             MinimumStabilityDevCheck::class,
             OutdatedPhpCheck::class,
+        ];
+    }
+
+    /**
+     * @return array<int, class-string<Advice>>
+     */
+    private static function shippedAdvices(): array
+    {
+        return [
+            SignedUrlUserContextAdvice::class,
+            PasswordResetMfaAdvice::class,
+            BroadcastChannelsFlagsAdvice::class,
+            OutdatedPackagesAdvice::class,
+            ConfigValidatedAtBootAdvice::class,
+            LivewirePublicPropertiesAdvice::class,
+            StagingKeyInProductionAdvice::class,
         ];
     }
 
@@ -177,7 +228,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasConfigFile('larascan')
             ->hasCommand(ScanCommand::class)
             ->hasCommand(ListChecksCommand::class)
-            ->hasCommand(InstallCommand::class);
+            ->hasCommand(InstallCommand::class)
+            ->hasCommand(AdviseCommand::class);
     }
 
     public function packageBooted(): void
@@ -259,12 +311,21 @@ class LarascanServiceProvider extends PackageServiceProvider
             basePath: $this->app->basePath(),
         ));
 
+        $this->app->bind(SecurityTxtCheck::class, fn (): SecurityTxtCheck => new SecurityTxtCheck(
+            publicPath: $this->app->publicPath(),
+        ));
+
         $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
 
         $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(SignedUrlNoParamsCheck::class, fn (): SignedUrlNoParamsCheck => new SignedUrlNoParamsCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
@@ -284,6 +345,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(HardcodedSecretCheck::class, fn (): HardcodedSecretCheck => new HardcodedSecretCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(PasswordSelfGeneratedCheck::class, fn (): PasswordSelfGeneratedCheck => new PasswordSelfGeneratedCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
@@ -313,6 +379,11 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(HtmlStringCheck::class, fn (): HtmlStringCheck => new HtmlStringCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(HtmlStringCastCheck::class, fn (): HtmlStringCastCheck => new HtmlStringCastCheck(
             appPath: $this->app->basePath('app'),
             parser: new FileParser,
         ));
@@ -362,6 +433,11 @@ class LarascanServiceProvider extends PackageServiceProvider
             parser: new FileParser,
         ));
 
+        $this->app->bind(OrWhereScopeBypassCheck::class, fn (): OrWhereScopeBypassCheck => new OrWhereScopeBypassCheck(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
         $this->app->bind(MinimumStabilityDevCheck::class, fn (): MinimumStabilityDevCheck => new MinimumStabilityDevCheck(
             basePath: $this->app->basePath(),
         ));
@@ -384,6 +460,55 @@ class LarascanServiceProvider extends PackageServiceProvider
         $this->app->singleton(Larascan::class, function (): Larascan {
             return new Larascan($this->app->make(CheckRegistry::class));
         });
+
+        $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(BroadcastChannelsFlagsAdvice::class, fn (): BroadcastChannelsFlagsAdvice => new BroadcastChannelsFlagsAdvice(
+            basePath: $this->app->basePath(),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(OutdatedPackagesAdvice::class, fn (): OutdatedPackagesAdvice => new OutdatedPackagesAdvice(
+            composer: $this->app->make(ComposerOutdatedRunner::class),
+            npm: $this->app->make(NpmOutdatedRunner::class),
+        ));
+
+        $this->app->bind(ConfigValidatedAtBootAdvice::class, fn (): ConfigValidatedAtBootAdvice => new ConfigValidatedAtBootAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(LivewirePublicPropertiesAdvice::class, fn (): LivewirePublicPropertiesAdvice => new LivewirePublicPropertiesAdvice(
+            appPath: $this->app->basePath('app'),
+            parser: new FileParser,
+        ));
+
+        $this->app->bind(StagingKeyInProductionAdvice::class, fn (): StagingKeyInProductionAdvice => new StagingKeyInProductionAdvice(
+            basePath: $this->app->basePath(),
+        ));
+
+        $this->app->singleton(AdviceRegistry::class, function (): AdviceRegistry {
+            /** @var array<string, array{enabled?: bool}> $config */
+            $config = $this->app->make('config')->get('larascan.advices', []);
+            $registry = new AdviceRegistry($config);
+
+            foreach (self::shippedAdvices() as $adviceClass) {
+                /** @var Advice $advice */
+                $advice = $this->app->make($adviceClass);
+                $registry->register($advice);
+            }
+
+            return $registry;
+        });
+
+        $this->app->singleton(Advise::class, function (): Advise {
+            return new Advise($this->app->make(AdviceRegistry::class));
+        });
+
+        $this->app->singleton(AdviceConsoleReporter::class, fn (): AdviceConsoleReporter => new AdviceConsoleReporter);
     }
 
     /**
@@ -399,6 +524,16 @@ class LarascanServiceProvider extends PackageServiceProvider
         ));
 
         $this->app->bind(NpmAuditRunner::class, fn (): NpmAuditRunner => new NpmAuditRunner(
+            workingDir: $this->app->basePath(),
+            binary: $this->resolveToolBinary('npm'),
+        ));
+
+        $this->app->bind(ComposerOutdatedRunner::class, fn (): ComposerOutdatedRunner => new ComposerOutdatedRunner(
+            workingDir: $this->app->basePath(),
+            binary: $this->resolveToolBinary('composer'),
+        ));
+
+        $this->app->bind(NpmOutdatedRunner::class, fn (): NpmOutdatedRunner => new NpmOutdatedRunner(
             workingDir: $this->app->basePath(),
             binary: $this->resolveToolBinary('npm'),
         ));

@@ -11,6 +11,7 @@ enum Category: string
     case Headers = 'headers';
     case Auth = 'auth';
     case Csrf = 'csrf';
+    case Routing = 'routing';
     case Models = 'models';
     case Sql = 'sql';
     case Xss = 'xss';
@@ -30,6 +31,7 @@ enum Category: string
             self::Headers => 'HTTP headers',
             self::Auth => 'Authentication',
             self::Csrf => 'CSRF',
+            self::Routing => 'Routing',
             self::Models => 'Eloquent models',
             self::Sql => 'SQL queries',
             self::Xss => 'XSS',
