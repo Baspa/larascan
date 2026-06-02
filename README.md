@@ -230,8 +230,8 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 10 / 11 / 12 / 13
+- PHP 8.3+
+- Laravel 11 / 12 / 13
 
 ## Contributing
 
