@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Baspa\Larascan\Support;
 
-use AgentDetector\AgentDetector as LaravelAgentDetector;
+use Laravel\AgentDetector\AgentDetector as LaravelAgentDetector;
 
 /**
  * Detects whether larascan is running under an AI coding agent.
