@@ -22,6 +22,7 @@ enum Category: string
     case Php = 'php';
     case Logging = 'logging';
     case Repo = 'repo';
+    case Ecosystem = 'ecosystem';
 
     public function label(): string
     {
@@ -42,6 +43,7 @@ enum Category: string
             self::Php => 'PHP & build',
             self::Logging => 'Logging & errors',
             self::Repo => 'Repo & CI',
+            self::Ecosystem => 'Ecosystem packages',
         };
     }
 }
