@@ -33,6 +33,11 @@ it('publishes the workflow file when --workflow flag is set', function () {
 
     expect(file_exists($workflowPath))->toBeTrue();
 
+    $workflow = (string) file_get_contents($workflowPath);
+    expect($workflow)->toContain('security-events: write')
+        ->toContain('github/codeql-action/upload-sarif')
+        ->toContain('--format=sarif --output=larascan.sarif');
+
     // Cleanup after
     if (file_exists($workflowPath)) {
         unlink($workflowPath);

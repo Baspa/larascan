@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   scan:
@@ -44,4 +45,13 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Run larascan
-        run: php artisan larascan --fail-on=high --only-failed --no-interaction
+        run: php artisan larascan --fail-on=high --only-failed --format=sarif --output=larascan.sarif --no-interaction
+
+      - name: Upload SARIF to GitHub Code Scanning
+        # Requires GitHub Advanced Security on private repos; remove this step if unavailable.
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('larascan.sarif') != ''
+        continue-on-error: true
+        with:
+          sarif_file: larascan.sarif
+          category: larascan

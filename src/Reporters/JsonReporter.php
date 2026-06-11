@@ -39,6 +39,11 @@ final class JsonReporter
                 ),
             ];
 
+            $baselined = $result->baselinedCountOf($checkId);
+            if ($baselined > 0) {
+                $entry['baselined'] = $baselined;
+            }
+
             if ($status === CheckStatus::Skipped) {
                 $entry['skip_reason'] = $result->skipReasonOf($checkId);
             }
@@ -53,12 +58,14 @@ final class JsonReporter
         $highest = $result->highestSeverity();
 
         $payload = [
-            'version' => '1.0',
+            'version' => '1.1',
             'summary' => [
                 'passed' => $counts['passed'],
                 'failed' => $counts['failed'],
                 'skipped' => $counts['skipped'],
                 'errored' => $counts['errored'],
+                'baselined' => $result->baselinedCount(),
+                'baseline_stale' => $result->staleBaselineCount(),
                 'highest_severity' => $highest?->value,
             ],
             'checks' => $checks,

@@ -43,3 +43,24 @@ it('keeps the original severity when env is production', function () {
     expect(Severity::Critical->downgradeIfNotProduction('production'))->toBe(Severity::Critical)
         ->and(Severity::High->downgradeIfNotProduction('production'))->toBe(Severity::High);
 });
+
+it('maps severity to SARIF level', function (Severity $severity, string $level) {
+    expect($severity->sarifLevel())->toBe($level);
+})->with([
+    [Severity::Critical, 'error'],
+    [Severity::High, 'error'],
+    [Severity::Medium, 'warning'],
+    [Severity::Low, 'note'],
+    [Severity::Info, 'note'],
+]);
+
+it('maps severity to a security-severity score consistent with fromCvssScore', function (Severity $severity, string $score) {
+    expect($severity->securitySeverityScore())->toBe($score)
+        ->and(Severity::fromCvssScore((float) $score))->toBe($severity);
+})->with([
+    [Severity::Critical, '9.8'],
+    [Severity::High, '8.0'],
+    [Severity::Medium, '5.5'],
+    [Severity::Low, '3.0'],
+    [Severity::Info, '0.0'],
+]);

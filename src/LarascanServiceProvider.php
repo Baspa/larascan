@@ -9,6 +9,7 @@ use Baspa\Larascan\Advices\Auth\SignedUrlUserContextAdvice;
 use Baspa\Larascan\Advices\Config\ConfigValidatedAtBootAdvice;
 use Baspa\Larascan\Advices\Crypto\StagingKeyInProductionAdvice;
 use Baspa\Larascan\Advices\Dependencies\OutdatedPackagesAdvice;
+use Baspa\Larascan\Advices\Ecosystem\WebhookSignatureAdvice;
 use Baspa\Larascan\Advices\Routing\BroadcastChannelsFlagsAdvice;
 use Baspa\Larascan\Advices\Xss\LivewirePublicPropertiesAdvice;
 use Baspa\Larascan\Checks\Auth\ApiAbilityScopingCheck;
@@ -29,6 +30,7 @@ use Baspa\Larascan\Checks\Config\EnvCallsOutsideConfigCheck;
 use Baspa\Larascan\Checks\Config\EnvExampleSyncCheck;
 use Baspa\Larascan\Checks\Config\EnvNotCommittedCheck;
 use Baspa\Larascan\Checks\Config\LogLevelCheck;
+use Baspa\Larascan\Checks\Config\MailSmtpEncryptionCheck;
 use Baspa\Larascan\Checks\Config\TrustedProxiesCheck;
 use Baspa\Larascan\Checks\Cookies\EncryptCookiesExcludesCheck;
 use Baspa\Larascan\Checks\Cookies\EncryptCookiesMiddlewareCheck;
@@ -48,6 +50,12 @@ use Baspa\Larascan\Checks\Dependencies\ComposerAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\MinimumStabilityDevCheck;
 use Baspa\Larascan\Checks\Dependencies\NpmAuditCheck;
 use Baspa\Larascan\Checks\Dependencies\OutdatedPhpCheck;
+use Baspa\Larascan\Checks\Ecosystem\DebugbarEnabledCheck;
+use Baspa\Larascan\Checks\Ecosystem\HorizonGateCheck;
+use Baspa\Larascan\Checks\Ecosystem\LivewireUploadRulesCheck;
+use Baspa\Larascan\Checks\Ecosystem\PulseGateCheck;
+use Baspa\Larascan\Checks\Ecosystem\TelescopeProductionCheck;
+use Baspa\Larascan\Checks\Files\DiskVisibilityCheck;
 use Baspa\Larascan\Checks\Files\PathTraversalCheck;
 use Baspa\Larascan\Checks\Files\PublicExecutableUploadsCheck;
 use Baspa\Larascan\Checks\Files\UnlinkUserInputCheck;
@@ -93,15 +101,27 @@ use Baspa\Larascan\Checks\Xss\HtmlStringCastCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
 use Baspa\Larascan\Commands\AdviseCommand;
+use Baspa\Larascan\Commands\BaselineCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
+use Baspa\Larascan\Commands\ProbeCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Contracts\Advice;
 use Baspa\Larascan\Contracts\Check;
+use Baspa\Larascan\Contracts\Probe;
+use Baspa\Larascan\Probes\CookieFlagsProbe;
+use Baspa\Larascan\Probes\CspProbe;
+use Baspa\Larascan\Probes\HstsProbe;
+use Baspa\Larascan\Probes\HttpsRedirectProbe;
+use Baspa\Larascan\Probes\ReferrerPolicyProbe;
+use Baspa\Larascan\Probes\ServerDisclosureProbe;
+use Baspa\Larascan\Probes\XContentTypeOptionsProbe;
+use Baspa\Larascan\Probes\XFrameOptionsProbe;
 use Baspa\Larascan\Reporters\AdviceConsoleReporter;
 use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\CheckRegistry;
 use Baspa\Larascan\Support\FileParser;
+use Baspa\Larascan\Support\ProbeRegistry;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
 use Baspa\Larascan\Tools\ComposerOutdatedRunner;
 use Baspa\Larascan\Tools\NpmAuditRunner;
@@ -130,6 +150,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             EnvCallsOutsideConfigCheck::class,
             DebugBlacklistCheck::class,
             TrustedProxiesCheck::class,
+            MailSmtpEncryptionCheck::class,
             SessionSecureCheck::class,
             SessionHttpOnlyCheck::class,
             SessionSameSiteCheck::class,
@@ -168,6 +189,11 @@ class LarascanServiceProvider extends PackageServiceProvider
             GitleaksHistoryCheck::class,
             DebugToolbarsCheck::class,
             SecurityTxtCheck::class,
+            TelescopeProductionCheck::class,
+            HorizonGateCheck::class,
+            PulseGateCheck::class,
+            DebugbarEnabledCheck::class,
+            LivewireUploadRulesCheck::class,
             LoginThrottleCheck::class,
             OtpRateLimitingCheck::class,
             RegistrationRateLimitCheck::class,
@@ -193,6 +219,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             UnlinkUserInputCheck::class,
             UploadMimesValidationCheck::class,
             PublicExecutableUploadsCheck::class,
+            DiskVisibilityCheck::class,
             SqlRawUserInputCheck::class,
             SqlRawOrderByCheck::class,
             SqlVariableTableColumnCheck::class,
@@ -202,6 +229,25 @@ class LarascanServiceProvider extends PackageServiceProvider
             NpmAuditCheck::class,
             MinimumStabilityDevCheck::class,
             OutdatedPhpCheck::class,
+        ];
+    }
+
+    /**
+     * Runtime probes shipped with this package.
+     *
+     * @return array<int, class-string<Probe>>
+     */
+    private static function shippedProbes(): array
+    {
+        return [
+            HstsProbe::class,
+            XContentTypeOptionsProbe::class,
+            XFrameOptionsProbe::class,
+            ReferrerPolicyProbe::class,
+            CspProbe::class,
+            CookieFlagsProbe::class,
+            ServerDisclosureProbe::class,
+            HttpsRedirectProbe::class,
         ];
     }
 
@@ -218,6 +264,7 @@ class LarascanServiceProvider extends PackageServiceProvider
             ConfigValidatedAtBootAdvice::class,
             LivewirePublicPropertiesAdvice::class,
             StagingKeyInProductionAdvice::class,
+            WebhookSignatureAdvice::class,
         ];
     }
 
@@ -229,7 +276,9 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasCommand(ScanCommand::class)
             ->hasCommand(ListChecksCommand::class)
             ->hasCommand(InstallCommand::class)
-            ->hasCommand(AdviseCommand::class);
+            ->hasCommand(AdviseCommand::class)
+            ->hasCommand(BaselineCommand::class)
+            ->hasCommand(ProbeCommand::class);
     }
 
     public function packageBooted(): void
@@ -313,6 +362,18 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(SecurityTxtCheck::class, fn (): SecurityTxtCheck => new SecurityTxtCheck(
             publicPath: $this->app->publicPath(),
+        ));
+
+        $this->app->bind(HorizonGateCheck::class, fn (): HorizonGateCheck => new HorizonGateCheck(
+            basePath: $this->app->basePath(),
+            parser: new FileParser,
+            app: $this->app,
+        ));
+
+        $this->app->bind(PulseGateCheck::class, fn (): PulseGateCheck => new PulseGateCheck(
+            basePath: $this->app->basePath(),
+            parser: new FileParser,
+            app: $this->app,
         ));
 
         $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
@@ -459,6 +520,25 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->singleton(Larascan::class, function (): Larascan {
             return new Larascan($this->app->make(CheckRegistry::class));
+        });
+
+        $this->app->singleton(ProbeRegistry::class, function (): ProbeRegistry {
+            /** @var array<string, array{enabled?: bool}> $config */
+            $config = $this->app->make('config')->get('larascan.probe.probes', []);
+
+            $registry = new ProbeRegistry($config);
+
+            foreach (self::shippedProbes() as $probeClass) {
+                /** @var Probe $probe */
+                $probe = $this->app->make($probeClass);
+                $registry->register($probe);
+            }
+
+            return $registry;
+        });
+
+        $this->app->singleton(Prober::class, function (): Prober {
+            return new Prober($this->app->make(ProbeRegistry::class));
         });
 
         $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(

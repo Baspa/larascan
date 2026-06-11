@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Illuminate\Support\Facades\Artisan;
 
 /**
  * Clear AI agent env vars around each test so the auto-format detection
@@ -184,4 +185,161 @@ it('renders JSON output when --format=json', function () {
 
     $this->artisan('larascan --format=json')
         ->assertExitCode(0);
+});
+
+it('renders decodable SARIF 2.1.0 when --format=sarif', function () {
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $this->withoutMockingConsoleOutput();
+    $exitCode = $this->artisan('larascan --format=sarif --fail-on=critical --check=config.app-debug');
+    $output = Artisan::output();
+
+    $decoded = json_decode($output, true);
+
+    expect($exitCode)->toBe(1)
+        ->and($decoded)->toBeArray()
+        ->and($decoded['version'])->toBe('2.1.0')
+        ->and($decoded['$schema'])->toBe('https://json.schemastore.org/sarif-2.1.0.json')
+        ->and($decoded['runs'][0]['tool']['driver']['name'])->toBe('Larascan')
+        ->and($decoded['runs'][0]['results'])->not->toBeEmpty();
+});
+
+it('writes SARIF to a file and prints the human report with --output', function () {
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $path = sys_get_temp_dir().'/larascan-sarif-'.uniqid().'.sarif';
+
+    try {
+        $this->artisan('larascan', ['--format' => 'sarif', '--output' => $path, '--fail-on' => 'critical', '--check' => ['config.app-debug']])
+            ->expectsOutputToContain('Report Card')
+            ->expectsOutputToContain("Report written to {$path}")
+            ->assertExitCode(1);
+
+        $decoded = json_decode((string) file_get_contents($path), true);
+        expect($decoded['version'])->toBe('2.1.0')
+            ->and($decoded['runs'][0]['results'])->not->toBeEmpty();
+    } finally {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+});
+
+it('exits 2 when --output cannot be written', function () {
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    // An existing directory is not writable as a file.
+    $path = sys_get_temp_dir();
+
+    $this->artisan('larascan', ['--format' => 'sarif', '--output' => $path, '--fail-on' => 'critical', '--check' => ['config.app-debug']])
+        ->expectsOutputToContain("Could not write report to {$path}")
+        ->assertExitCode(2);
+});
+
+it('exits 2 on invalid --format value', function () {
+    $this->artisan('larascan --format=bogus')
+        ->expectsOutputToContain('Invalid --format value: bogus')
+        ->assertExitCode(2);
+});
+
+it('suppresses baselined findings and exits 0', function () {
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $path = sys_get_temp_dir().'/larascan-scan-baseline-'.uniqid().'.json';
+
+    try {
+        $this->artisan('larascan:baseline', ['--baseline' => $path])->assertExitCode(0);
+
+        $this->artisan('larascan', ['--baseline' => $path])
+            ->expectsOutputToContain('baselined')
+            ->assertExitCode(0);
+    } finally {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+});
+
+it('still fails on new findings not in the baseline', function () {
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $path = sys_get_temp_dir().'/larascan-scan-baseline-'.uniqid().'.json';
+
+    try {
+        $this->artisan('larascan:baseline', ['--baseline' => $path])->assertExitCode(0);
+
+        // Introduce a NEW critical finding after the baseline was written.
+        config()->set('app.key', '');
+
+        $this->artisan('larascan', ['--baseline' => $path])
+            ->expectsOutputToContain('config.app-key')
+            ->assertExitCode(1);
+    } finally {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+});
+
+it('ignores the baseline with --no-baseline', function () {
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $path = sys_get_temp_dir().'/larascan-scan-baseline-'.uniqid().'.json';
+
+    try {
+        $this->artisan('larascan:baseline', ['--baseline' => $path])->assertExitCode(0);
+
+        $this->artisan('larascan', ['--baseline' => $path, '--no-baseline' => true])
+            ->assertExitCode(1);
+    } finally {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+});
+
+it('exits 2 when an explicit baseline file does not exist', function () {
+    $this->artisan('larascan', ['--baseline' => '/nonexistent/larascan-baseline.json'])
+        ->expectsOutputToContain('Baseline file not found')
+        ->assertExitCode(2);
+});
+
+it('shows a stale hint when baseline entries no longer match', function () {
+    config()->set('app.key', 'base64:fJjK9p8wQYJxhmKQYr8MwhYrnX1z3vKzpW9rh4vF8rA=');
+    config()->set('app.env', 'production');
+    config()->set('app.debug', true);
+
+    $path = sys_get_temp_dir().'/larascan-scan-baseline-'.uniqid().'.json';
+
+    try {
+        $this->artisan('larascan:baseline', ['--baseline' => $path])->assertExitCode(0);
+
+        // Add an entry that matches nothing in the current scan.
+        $data = json_decode((string) file_get_contents($path), true);
+        $data['findings'][] = [
+            'check' => 'config.app-debug',
+            'file' => null,
+            'message' => 'this finding no longer exists',
+            'severity' => 'high',
+            'count' => 1,
+        ];
+        file_put_contents($path, json_encode($data));
+
+        $this->artisan('larascan', ['--baseline' => $path])
+            ->expectsOutputToContain('stale baseline entry')
+            ->assertExitCode(0);
+    } finally {
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
 });

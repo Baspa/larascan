@@ -14,6 +14,7 @@ return [
         'config.env-calls-outside-config' => ['enabled' => true],
         'config.debug-blacklist' => ['enabled' => true],
         'config.trusted-proxies' => ['enabled' => true],
+        'config.mail-smtp-encryption' => ['enabled' => true],
         'cookies.session-secure' => ['enabled' => true],
         'cookies.session-http-only' => ['enabled' => true],
         'cookies.session-same-site' => ['enabled' => true],
@@ -55,6 +56,7 @@ return [
         'files.unlink-user-input' => ['enabled' => true],
         'files.upload-mimes-validation' => ['enabled' => true],
         'files.public-executable-uploads' => ['enabled' => true],
+        'files.disk-visibility' => ['enabled' => true],
         'sql.raw-user-input' => ['enabled' => true],
         'sql.raw-order-by' => ['enabled' => true],
         'sql.variable-table-column' => ['enabled' => true],
@@ -71,10 +73,35 @@ return [
         'repo.dependabot' => ['enabled' => true],
         'repo.gitleaks-history' => ['enabled' => true],
         'repo.debug-toolbars' => ['enabled' => true],
+        'ecosystem.telescope-production' => ['enabled' => true],
+        'ecosystem.horizon-gate' => ['enabled' => true],
+        'ecosystem.pulse-gate' => ['enabled' => true],
+        'ecosystem.debugbar-enabled' => ['enabled' => true],
+        'ecosystem.livewire-upload-rules' => ['enabled' => true],
         'dependencies.composer-audit' => ['enabled' => true],
         'dependencies.npm-audit' => ['enabled' => true],
         'dependencies.minimum-stability-dev' => ['enabled' => true],
         'dependencies.outdated-php' => ['enabled' => true],
+    ],
+
+    /*
+     * Runtime probe (`php artisan larascan:probe`). Performs ONE real HTTP GET
+     * against the running app and verifies the live response headers/cookies
+     * match what the static checks expect.
+     */
+    'probe' => [
+        'url' => env('LARASCAN_PROBE_URL'),
+        'timeout' => 5,
+        'probes' => [
+            'probe.hsts' => ['enabled' => true],
+            'probe.x-content-type-options' => ['enabled' => true],
+            'probe.x-frame-options' => ['enabled' => true],
+            'probe.referrer-policy' => ['enabled' => true],
+            'probe.csp' => ['enabled' => true],
+            'probe.cookie-flags' => ['enabled' => true],
+            'probe.server-disclosure' => ['enabled' => true],
+            'probe.https-redirect' => ['enabled' => true],
+        ],
     ],
 
     'ignore' => [
@@ -90,5 +117,13 @@ return [
         'semgrep' => env('LARASCAN_SEMGREP_BIN', 'semgrep'),
     ],
 
+    /*
+     * Baseline file written by `php artisan larascan:baseline`. Findings in
+     * the baseline are suppressed on subsequent scans so only new findings
+     * fail CI.
+     *
+     * null   = auto-detect larascan-baseline.json in the project root
+     * string = custom path to the baseline file
+     */
     'baseline' => null,
 ];
