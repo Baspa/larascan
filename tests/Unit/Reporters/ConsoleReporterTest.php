@@ -137,6 +137,63 @@ it('skips the whole category section when all checks pass under onlyFailed', fun
         ->and($text)->toContain('cookies.session-secure');
 });
 
+it('shows a baselined suffix on passed checks with baselined findings', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [], null, [
+            new Finding('config.app-debug', Severity::Critical, 'APP_DEBUG is true'),
+            new Finding('config.app-debug', Severity::Critical, 'APP_DEBUG is really true'),
+        ])
+        ->record('config.app-key', CheckStatus::Passed, []);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->toContain('(2 baselined)')
+        ->toContain('2 baselined');
+});
+
+it('shows a more-baselined suffix on failed checks with baselined findings', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Failed, [
+            new Finding('config.app-debug', Severity::Critical, 'new issue'),
+        ], null, [
+            new Finding('config.app-debug', Severity::Critical, 'old issue'),
+        ]);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->toContain('(1 more baselined)')
+        ->toContain('new issue')
+        ->and($text)->not->toContain('old issue');
+});
+
+it('shows a stale baseline hint in the report card', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [])
+        ->withStaleBaselineCount(3);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->toContain('3 stale baseline entries')
+        ->toContain('larascan:baseline');
+});
+
+it('hides baselined and stale lines when there is no baseline activity', function () {
+    $result = (new ScanResult)->record('config.app-debug', CheckStatus::Passed, []);
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->not->toContain('baselined')
+        ->and($text)->not->toContain('stale baseline');
+});
+
 it('renders a report card with category bars', function () {
     $result = (new ScanResult)
         ->record('config.app-debug', CheckStatus::Passed, [])

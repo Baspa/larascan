@@ -23,12 +23,34 @@ it('renders valid JSON with summary and checks', function () {
     $decoded = json_decode($output->fetch(), true);
 
     expect($decoded)->toBeArray()
-        ->and($decoded['version'])->toBe('1.0')
+        ->and($decoded['version'])->toBe('1.1')
         ->and($decoded['summary']['passed'])->toBe(1)
         ->and($decoded['summary']['failed'])->toBe(1)
         ->and($decoded['summary']['skipped'])->toBe(1)
+        ->and($decoded['summary']['baselined'])->toBe(0)
+        ->and($decoded['summary']['baseline_stale'])->toBe(0)
         ->and($decoded['summary']['highest_severity'])->toBe('critical')
         ->and($decoded['checks'])->toHaveCount(3);
+});
+
+it('reports baselined counts in summary and per check', function () {
+    $result = (new ScanResult)
+        ->record('config.app-debug', CheckStatus::Passed, [], null, [
+            new Finding('config.app-debug', Severity::Critical, 'APP_DEBUG is true'),
+        ])
+        ->record('cookies.session-secure', CheckStatus::Passed, [])
+        ->withStaleBaselineCount(2);
+
+    $output = new BufferedOutput;
+    (new JsonReporter)->render($result, $output);
+
+    $decoded = json_decode($output->fetch(), true);
+
+    expect($decoded['summary']['baselined'])->toBe(1)
+        ->and($decoded['summary']['baseline_stale'])->toBe(2)
+        ->and($decoded['checks'][0]['baselined'])->toBe(1)
+        // The 'baselined' key is omitted when zero.
+        ->and($decoded['checks'][1])->not->toHaveKey('baselined');
 });
 
 it('includes file and line in findings when present', function () {

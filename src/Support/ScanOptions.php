@@ -13,5 +13,6 @@ final readonly class ScanOptions
         public Severity $failOn = Severity::High,
         public array $checkPatterns = [],
         public ?Category $category = null,
+        public ?Baseline $baseline = null,
     ) {}
 }

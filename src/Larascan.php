@@ -26,6 +26,7 @@ final class Larascan
     public function scan(ScanOptions $options = new ScanOptions): ScanResult
     {
         $result = new ScanResult;
+        $matcher = $options->baseline?->matcher();
 
         foreach ($this->selectChecks($options) as $check) {
             if (! $check->isApplicable()) {
@@ -37,15 +38,30 @@ final class Larascan
             try {
                 /** @var array<int, Finding> $findings */
                 $findings = [];
+                /** @var array<int, Finding> $baselined */
+                $baselined = [];
                 foreach ($check->run() as $f) {
-                    $findings[] = $f;
+                    if ($matcher !== null && $matcher->suppresses($f)) {
+                        $baselined[] = $f;
+                    } else {
+                        $findings[] = $f;
+                    }
                 }
 
                 $status = $findings === [] ? CheckStatus::Passed : CheckStatus::Failed;
-                $result = $result->record($check->id(), $status, $findings);
+                $result = $result->record($check->id(), $status, $findings, baselinedFindings: $baselined);
             } catch (Throwable $e) {
+                // Findings yielded before the error already consumed baseline
+                // matcher budget, so staleCount() can under-report on errored
+                // runs (accepted, cosmetic).
                 $result = $result->recordError($check->id(), $e);
             }
+        }
+
+        // Stale entries are only meaningful when the full enabled set ran;
+        // a filtered run would report every out-of-scope entry as stale.
+        if ($options->checkPatterns === [] && $options->category === null) {
+            $result = $result->withStaleBaselineCount($matcher?->staleCount() ?? 0);
         }
 
         return $result;

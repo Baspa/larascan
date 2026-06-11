@@ -78,9 +78,12 @@ final class ConsoleReporter
      */
     private function renderCheckRow(OutputInterface $output, string $checkId, ?CheckStatus $status, array $findings, ScanResult $result): void
     {
+        $baselined = $result->baselinedCountOf($checkId);
+
         switch ($status) {
             case CheckStatus::Passed:
-                $output->writeln(sprintf('     <fg=green>✓</> %s', $checkId));
+                $suffix = $baselined > 0 ? sprintf(' <fg=gray>(%d baselined)</>', $baselined) : '';
+                $output->writeln(sprintf('     <fg=green>✓</> %s%s', $checkId, $suffix));
 
                 return;
 
@@ -103,8 +106,10 @@ final class ConsoleReporter
                 return;
 
             case CheckStatus::Failed:
+                $suffix = $baselined > 0 ? sprintf(' <fg=gray>(%d more baselined)</>', $baselined) : '';
+
                 if ($findings === []) {
-                    $output->writeln(sprintf('     <fg=red>✗</> %s <fg=red>FAILED</>', $checkId));
+                    $output->writeln(sprintf('     <fg=red>✗</> %s <fg=red>FAILED</>%s', $checkId, $suffix));
 
                     return;
                 }
@@ -118,9 +123,10 @@ final class ConsoleReporter
                 }
 
                 $output->writeln(sprintf(
-                    '     %s %s',
+                    '     %s %s%s',
                     $this->failedGlyphFor($highest),
                     $checkId,
+                    $suffix,
                 ));
 
                 $lastKey = array_key_last($findings);
@@ -216,13 +222,24 @@ final class ConsoleReporter
         }
 
         $output->writeln('');
+        $baselined = $result->baselinedCount();
         $output->writeln(sprintf(
-            '  Total: <fg=green>%d passed</>   <fg=red>%d failed</>   <fg=yellow>%d skipped</>   <fg=red;options=bold>%d errored</>',
+            '  Total: <fg=green>%d passed</>   <fg=red>%d failed</>   <fg=yellow>%d skipped</>   <fg=red;options=bold>%d errored</>%s',
             $counts['passed'],
             $counts['failed'],
             $counts['skipped'],
             $counts['errored'],
+            $baselined > 0 ? sprintf('   <fg=gray>%d baselined</>', $baselined) : '',
         ));
+
+        $stale = $result->staleBaselineCount();
+        if ($stale > 0) {
+            $output->writeln(sprintf(
+                '  <fg=gray>%d stale baseline %s — re-run php artisan larascan:baseline to prune</>',
+                $stale,
+                $stale === 1 ? 'entry' : 'entries',
+            ));
+        }
 
         if ($highest !== null) {
             $output->writeln(sprintf(

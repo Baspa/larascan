@@ -93,6 +93,7 @@ use Baspa\Larascan\Checks\Xss\HtmlStringCastCheck;
 use Baspa\Larascan\Checks\Xss\HtmlStringCheck;
 use Baspa\Larascan\Checks\Xss\UrlJavascriptProtocolCheck;
 use Baspa\Larascan\Commands\AdviseCommand;
+use Baspa\Larascan\Commands\BaselineCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
 use Baspa\Larascan\Commands\ScanCommand;
@@ -229,7 +230,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasCommand(ScanCommand::class)
             ->hasCommand(ListChecksCommand::class)
             ->hasCommand(InstallCommand::class)
-            ->hasCommand(AdviseCommand::class);
+            ->hasCommand(AdviseCommand::class)
+            ->hasCommand(BaselineCommand::class);
     }
 
     public function packageBooted(): void

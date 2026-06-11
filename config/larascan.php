@@ -90,5 +90,13 @@ return [
         'semgrep' => env('LARASCAN_SEMGREP_BIN', 'semgrep'),
     ],
 
+    /*
+     * Baseline file written by `php artisan larascan:baseline`. Findings in
+     * the baseline are suppressed on subsequent scans so only new findings
+     * fail CI.
+     *
+     * null   = auto-detect larascan-baseline.json in the project root
+     * string = custom path to the baseline file
+     */
     'baseline' => null,
 ];

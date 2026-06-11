@@ -109,7 +109,7 @@ final class ApiAbilityScopingCheck extends AbstractCheck
                 yield new Finding(
                     checkId: $this->id(),
                     severity: $this->severity(),
-                    message: "createToken() in {$relative}:{$call->getStartLine()} creates a token without scoped abilities — token can perform any action. Pass specific abilities array.",
+                    message: 'createToken() creates a token without scoped abilities — token can perform any action. Pass specific abilities array.',
                     file: $relative,
                     line: $call->getStartLine(),
                 );
