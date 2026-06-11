@@ -35,3 +35,16 @@ it('fails when value is not nosniff', function () {
 
     expect(iterator_to_array((new XContentTypeOptionsProbe)->evaluate($context)))->toHaveCount(1);
 });
+
+it('passes for a case-insensitive nosniff with surrounding whitespace', function () {
+    $context = xctoContext(['x-content-type-options' => ['  NOSNIFF  ']]);
+
+    expect(iterator_to_array((new XContentTypeOptionsProbe)->evaluate($context)))->toBeEmpty();
+});
+
+it('downgrades a missing-header finding to Info for local targets', function () {
+    $findings = iterator_to_array((new XContentTypeOptionsProbe)->evaluate(xctoContext([], isLocal: true)));
+
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->severity)->toBe(Severity::Info);
+});

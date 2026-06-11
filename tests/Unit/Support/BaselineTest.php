@@ -147,6 +147,45 @@ it('throws on a malformed finding entry', function () {
     Baseline::fromFile($this->baselinePath, new FindingHasher);
 })->throws(BaselineException::class, 'malformed finding entry');
 
+it('throws when the decoded JSON is a scalar rather than an object', function () {
+    file_put_contents($this->baselinePath, '42');
+
+    Baseline::fromFile($this->baselinePath, new FindingHasher);
+})->throws(BaselineException::class, 'invalid JSON');
+
+it('throws when the findings key is missing', function () {
+    file_put_contents($this->baselinePath, (string) json_encode(['version' => 1]));
+
+    Baseline::fromFile($this->baselinePath, new FindingHasher);
+})->throws(BaselineException::class, 'missing its findings array');
+
+it('throws when a findings entry is not an array', function () {
+    file_put_contents($this->baselinePath, (string) json_encode([
+        'version' => 1,
+        'findings' => ['not-an-array'],
+    ]));
+
+    Baseline::fromFile($this->baselinePath, new FindingHasher);
+})->throws(BaselineException::class, 'malformed finding entry');
+
+it('resolves the explicit option ahead of config and the default', function () {
+    config()->set('larascan.baseline', '/from/config.json');
+
+    expect(Baseline::resolvePath('/explicit/path.json'))->toBe('/explicit/path.json');
+});
+
+it('resolves the configured path when no option is given', function () {
+    config()->set('larascan.baseline', '/from/config.json');
+
+    expect(Baseline::resolvePath(null))->toBe('/from/config.json');
+});
+
+it('resolves the default project-root path when neither option nor config is set', function () {
+    config()->set('larascan.baseline', null);
+
+    expect(Baseline::resolvePath(null))->toBe(base_path('larascan-baseline.json'));
+});
+
 it('suppresses exactly count occurrences then reports new ones', function () {
     $hasher = new FindingHasher;
     $finding = new Finding('sql.raw-user-input', Severity::Critical, 'Raw SQL', file: 'app/Foo.php');

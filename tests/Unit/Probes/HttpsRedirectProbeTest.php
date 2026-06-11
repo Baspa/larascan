@@ -56,6 +56,19 @@ it('fails when redirect target is not https', function () {
     expect(iterator_to_array((new HttpsRedirectProbe)->evaluate($context)))->toHaveCount(1);
 });
 
+it('yields nothing when evaluate is called with no captured redirect', function () {
+    $context = redirectContext(null);
+
+    expect(iterator_to_array((new HttpsRedirectProbe)->evaluate($context)))->toBeEmpty();
+});
+
+it('fails when the status is not a redirect code even with an https location', function () {
+    // A 200 that happens to carry an https Location is not an actual redirect.
+    $context = redirectContext(['status' => 200, 'location' => 'https://example.com/']);
+
+    expect(iterator_to_array((new HttpsRedirectProbe)->evaluate($context)))->toHaveCount(1);
+});
+
 it('downgrades to Info for local targets', function () {
     $context = redirectContext(['status' => 200, 'location' => null], isLocal: true);
     $findings = iterator_to_array((new HttpsRedirectProbe)->evaluate($context));

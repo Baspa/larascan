@@ -88,6 +88,80 @@ it('returns null for missing files', function () {
     ))->toBeNull();
 });
 
+function gateTempFile(string $body): string
+{
+    $path = tempnam(sys_get_temp_dir(), 'gate').'.php';
+    file_put_contents($path, "<?php\n".$body);
+
+    return $path;
+}
+
+it('does not judge a closure that returns false', function () {
+    $path = gateTempFile("\Illuminate\Support\Facades\Gate::define('viewThing', function () { return false; });");
+
+    try {
+        expect((new GateDefinitionIntrospection(new FileParser))
+            ->findTriviallyTrueGate([$path], 'viewThing'))->toBeNull();
+    } finally {
+        unlink($path);
+    }
+});
+
+it('does not judge an arrow function that returns false', function () {
+    $path = gateTempFile("\Illuminate\Support\Facades\Gate::define('viewThing', fn () => false);");
+
+    try {
+        expect((new GateDefinitionIntrospection(new FileParser))
+            ->findTriviallyTrueGate([$path], 'viewThing'))->toBeNull();
+    } finally {
+        unlink($path);
+    }
+});
+
+it('does not judge a closure body with more than a single return statement', function () {
+    $path = gateTempFile("\Illuminate\Support\Facades\Gate::define('viewThing', function () { \$x = 1; return true; });");
+
+    try {
+        expect((new GateDefinitionIntrospection(new FileParser))
+            ->findTriviallyTrueGate([$path], 'viewThing'))->toBeNull();
+    } finally {
+        unlink($path);
+    }
+});
+
+it('ignores Gate calls that are not define()', function () {
+    $path = gateTempFile("\Illuminate\Support\Facades\Gate::allows('viewThing', fn () => true);");
+
+    try {
+        expect((new GateDefinitionIntrospection(new FileParser))
+            ->findTriviallyTrueGate([$path], 'viewThing'))->toBeNull();
+    } finally {
+        unlink($path);
+    }
+});
+
+it('ignores a static call on an unrelated class', function () {
+    $path = gateTempFile("\Acme\NotGate::define('viewThing', fn () => true);");
+
+    try {
+        expect((new GateDefinitionIntrospection(new FileParser))
+            ->findTriviallyTrueGate([$path], 'viewThing'))->toBeNull();
+    } finally {
+        unlink($path);
+    }
+});
+
+it('ignores a define() whose gate name is not a string literal', function () {
+    $path = gateTempFile("\$name = 'viewThing'; \Illuminate\Support\Facades\Gate::define(\$name, fn () => true);");
+
+    try {
+        expect((new GateDefinitionIntrospection(new FileParser))
+            ->findTriviallyTrueGate([$path], 'viewThing'))->toBeNull();
+    } finally {
+        unlink($path);
+    }
+});
+
 it('scans multiple provider files and skips missing ones', function () {
     $introspection = new GateDefinitionIntrospection(new FileParser);
 

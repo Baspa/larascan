@@ -72,6 +72,13 @@ it('treats vendor webhook middleware as signature verification', function () {
     expect($outcome->status)->toBe(AdviceStatus::NotSurfaced);
 });
 
+it('treats a verifySignature middleware as signature verification', function () {
+    Route::post('webhooks/stripe', fn () => 'ok')->middleware('App\\Http\\Middleware\\VerifySignature');
+
+    $outcome = (new WebhookSignatureAdvice($this->app))->run();
+    expect($outcome->status)->toBe(AdviceStatus::NotSurfaced);
+});
+
 it('only surfaces the unprotected routes when some are protected', function () {
     Route::post('webhooks/stripe', fn () => 'ok')->middleware('signed');
     Route::post('webhooks/github', fn () => 'ok');

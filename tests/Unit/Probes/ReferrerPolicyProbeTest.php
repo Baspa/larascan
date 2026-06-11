@@ -35,3 +35,23 @@ it('fails when unsafe-url', function () {
 
     expect(iterator_to_array((new ReferrerPolicyProbe)->evaluate($context)))->toHaveCount(1);
 });
+
+it('fails when unsafe-url is padded and upper-cased', function () {
+    $context = rpContext(['referrer-policy' => ['  UNSAFE-URL  ']]);
+
+    expect(iterator_to_array((new ReferrerPolicyProbe)->evaluate($context)))->toHaveCount(1);
+});
+
+it('downgrades a missing-header finding to Info for local targets', function () {
+    $context = new ProbeContext(
+        url: 'https://app.test',
+        isHttps: true,
+        isLocal: true,
+        status: 200,
+        headers: [],
+    );
+    $findings = iterator_to_array((new ReferrerPolicyProbe)->evaluate($context));
+
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->severity)->toBe(Severity::Info);
+});

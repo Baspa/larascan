@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Baspa\Larascan\Support\ProbeContextFactory;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
@@ -131,4 +132,67 @@ it('treats a .test host as local even over http', function () {
     $context = (new ProbeContextFactory)->fromUrl('http://foo.test', 5, false);
 
     expect($context->isLocal)->toBeTrue();
+});
+
+it('treats 127.0.0.1 as local', function () {
+    Http::fake([
+        'https://127.0.0.1' => Http::response('', 200, []),
+        'http://127.0.0.1' => Http::response('', 200, []),
+    ]);
+
+    $context = (new ProbeContextFactory)->fromUrl('https://127.0.0.1', 5, false);
+
+    expect($context->isLocal)->toBeTrue();
+});
+
+it('treats a .local host as local', function () {
+    Http::fake([
+        'http://printer.local' => Http::response('', 200, []),
+    ]);
+
+    $context = (new ProbeContextFactory)->fromUrl('http://printer.local', 5, false);
+
+    expect($context->isLocal)->toBeTrue();
+});
+
+it('skips TLS verification when probing insecurely', function () {
+    Http::fake([
+        'https://self-signed.example' => Http::response('', 200, ['X-Frame-Options' => 'DENY']),
+        'http://self-signed.example' => Http::response('', 200, []),
+    ]);
+
+    $context = (new ProbeContextFactory)->fromUrl('https://self-signed.example', 5, true);
+
+    expect($context->status)->toBe(200)
+        ->and($context->header('x-frame-options'))->toBe('DENY');
+
+    // Both the main request and the http-redirect probe must run without verifying.
+    Http::assertSent(fn ($request) => $request->url() === 'https://self-signed.example');
+    Http::assertSent(fn ($request) => $request->url() === 'http://self-signed.example');
+});
+
+it('leaves httpRedirect null when the http redirect probe throws', function () {
+    Http::fake([
+        'https://example.com' => Http::response('', 200, []),
+        'http://example.com' => fn () => throw new ConnectionException('refused'),
+    ]);
+
+    $context = (new ProbeContextFactory)->fromUrl('https://example.com', 5, false);
+
+    expect($context->httpRedirect)->toBeNull()
+        ->and($context->status)->toBe(200);
+});
+
+it('normalizes an empty Location header to null on the redirect capture', function () {
+    Http::fake([
+        'https://example.com' => Http::response('', 200, []),
+        'http://example.com' => Http::response('', 301, ['Location' => '']),
+    ]);
+
+    $context = (new ProbeContextFactory)->fromUrl('https://example.com', 5, false);
+
+    expect($context->httpRedirect)->toMatchArray([
+        'status' => 301,
+        'location' => null,
+    ]);
 });

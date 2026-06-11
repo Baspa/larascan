@@ -122,3 +122,67 @@ it('keeps a config-disabled probe disabled even when matched by --probe', functi
         ->doesntExpectOutputToContain('probe.hsts')
         ->assertExitCode(0);
 });
+
+it('exits 2 on an invalid --fail-on value', function () {
+    $this->artisan('larascan:probe', ['--url' => 'https://example.com', '--fail-on' => 'nonsense'])
+        ->expectsOutputToContain('Invalid --fail-on value: nonsense')
+        ->assertExitCode(2);
+});
+
+it('exits 2 on an invalid --format value', function () {
+    $this->artisan('larascan:probe', ['--url' => 'https://example.com', '--format' => 'xml'])
+        ->expectsOutputToContain('Invalid --format value: xml')
+        ->assertExitCode(2);
+});
+
+it('falls back to larascan.fail_on config when no flag is given', function () {
+    // An info threshold means even a Low finding (short HSTS) fails the run.
+    config()->set('larascan.fail_on', 'info');
+    $responses = secureResponses();
+    $responses['https://example.com'] = Http::response('', 200, [
+        'Strict-Transport-Security' => 'max-age=3600',
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'DENY',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'Content-Security-Policy' => "default-src 'self'; script-src 'self'",
+        'Set-Cookie' => 'laravel_session=abc; path=/; Secure; HttpOnly; SameSite=Lax',
+    ]);
+    Http::fake($responses);
+
+    $this->artisan('larascan:probe', ['--url' => 'https://example.com'])
+        ->assertExitCode(1);
+});
+
+it('honors a numeric --timeout option', function () {
+    Http::fake(secureResponses());
+
+    $this->artisan('larascan:probe', ['--url' => 'https://example.com', '--timeout' => '10'])
+        ->assertExitCode(0);
+});
+
+it('auto-selects json output when running under an agent', function () {
+    putenv('LARASCAN_AGENT_MODE=1');
+    Http::fake(secureResponses());
+
+    $this->artisan('larascan:probe', ['--url' => 'https://example.com'])
+        ->expectsOutputToContain('"version"')
+        ->assertExitCode(0);
+});
+
+it('hides passed probes with --only-failed', function () {
+    $responses = secureResponses();
+    // Drop HSTS so probe.hsts fails while the rest pass.
+    $responses['https://example.com'] = Http::response('', 200, [
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'DENY',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'Content-Security-Policy' => "default-src 'self'; script-src 'self'",
+        'Set-Cookie' => 'laravel_session=abc; path=/; Secure; HttpOnly; SameSite=Lax',
+    ]);
+    Http::fake($responses);
+
+    $this->artisan('larascan:probe', ['--url' => 'https://example.com', '--only-failed' => true, '--fail-on' => 'critical'])
+        ->expectsOutputToContain('probe.hsts')
+        ->doesntExpectOutputToContain('probe.csp')
+        ->assertExitCode(0);
+});

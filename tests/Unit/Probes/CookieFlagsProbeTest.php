@@ -66,6 +66,25 @@ it('evaluates multiple Set-Cookie headers independently', function () {
     expect($findings)->toHaveCount(3);
 });
 
+it('does not flag a non-session cookie for missing HttpOnly', function () {
+    // A non-session cookie without HttpOnly is fine — only its SameSite is checked.
+    $context = cookieContext([
+        ['name' => 'theme', 'secure' => true, 'httponly' => false, 'samesite' => 'lax'],
+    ]);
+
+    expect(iterator_to_array((new CookieFlagsProbe)->evaluate($context)))->toBeEmpty();
+});
+
+it('treats any *_session cookie as a session cookie for the HttpOnly check', function () {
+    $context = cookieContext([
+        ['name' => 'admin_session', 'secure' => true, 'httponly' => false, 'samesite' => 'lax'],
+    ]);
+    $findings = iterator_to_array((new CookieFlagsProbe)->evaluate($context));
+
+    expect($findings)->toHaveCount(1)
+        ->and($findings[0]->message)->toContain('HttpOnly');
+});
+
 it('does not flag missing Secure for an http target', function () {
     $context = cookieContext([
         ['name' => 'session', 'secure' => false, 'httponly' => true, 'samesite' => 'lax'],

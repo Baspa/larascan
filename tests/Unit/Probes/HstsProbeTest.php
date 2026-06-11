@@ -66,6 +66,14 @@ it('passes with a sufficient max-age', function () {
     expect(iterator_to_array((new HstsProbe)->evaluate($context)))->toBeEmpty();
 });
 
+it('passes when the header is present but has no parseable max-age', function () {
+    // No max-age directive at all — the probe cannot judge the duration and
+    // does not flag it (the regex simply does not match).
+    $context = hstsContext(['strict-transport-security' => ['includeSubDomains']]);
+
+    expect(iterator_to_array((new HstsProbe)->evaluate($context)))->toBeEmpty();
+});
+
 it('downgrades to Info for local targets', function () {
     $context = hstsContext([], isHttps: true, isLocal: true);
     $findings = iterator_to_array((new HstsProbe)->evaluate($context));
