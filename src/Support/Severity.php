@@ -43,4 +43,28 @@ enum Severity: string
     {
         return $envValue === 'production' ? $this : self::Info;
     }
+
+    public function sarifLevel(): string
+    {
+        return match ($this) {
+            self::Critical, self::High => 'error',
+            self::Medium => 'warning',
+            self::Low, self::Info => 'note',
+        };
+    }
+
+    /**
+     * CVSS-style score for GitHub's `security-severity` rule property.
+     * Values stay consistent with the fromCvssScore() boundaries.
+     */
+    public function securitySeverityScore(): string
+    {
+        return match ($this) {
+            self::Critical => '9.8',
+            self::High => '8.0',
+            self::Medium => '5.5',
+            self::Low => '3.0',
+            self::Info => '0.0',
+        };
+    }
 }
