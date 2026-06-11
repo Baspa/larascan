@@ -104,13 +104,24 @@ use Baspa\Larascan\Commands\AdviseCommand;
 use Baspa\Larascan\Commands\BaselineCommand;
 use Baspa\Larascan\Commands\InstallCommand;
 use Baspa\Larascan\Commands\ListChecksCommand;
+use Baspa\Larascan\Commands\ProbeCommand;
 use Baspa\Larascan\Commands\ScanCommand;
 use Baspa\Larascan\Contracts\Advice;
 use Baspa\Larascan\Contracts\Check;
+use Baspa\Larascan\Contracts\Probe;
+use Baspa\Larascan\Probes\CookieFlagsProbe;
+use Baspa\Larascan\Probes\CspProbe;
+use Baspa\Larascan\Probes\HstsProbe;
+use Baspa\Larascan\Probes\HttpsRedirectProbe;
+use Baspa\Larascan\Probes\ReferrerPolicyProbe;
+use Baspa\Larascan\Probes\ServerDisclosureProbe;
+use Baspa\Larascan\Probes\XContentTypeOptionsProbe;
+use Baspa\Larascan\Probes\XFrameOptionsProbe;
 use Baspa\Larascan\Reporters\AdviceConsoleReporter;
 use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\CheckRegistry;
 use Baspa\Larascan\Support\FileParser;
+use Baspa\Larascan\Support\ProbeRegistry;
 use Baspa\Larascan\Tools\ComposerAuditRunner;
 use Baspa\Larascan\Tools\ComposerOutdatedRunner;
 use Baspa\Larascan\Tools\NpmAuditRunner;
@@ -222,6 +233,25 @@ class LarascanServiceProvider extends PackageServiceProvider
     }
 
     /**
+     * Runtime probes shipped with this package.
+     *
+     * @return array<int, class-string<Probe>>
+     */
+    private static function shippedProbes(): array
+    {
+        return [
+            HstsProbe::class,
+            XContentTypeOptionsProbe::class,
+            XFrameOptionsProbe::class,
+            ReferrerPolicyProbe::class,
+            CspProbe::class,
+            CookieFlagsProbe::class,
+            ServerDisclosureProbe::class,
+            HttpsRedirectProbe::class,
+        ];
+    }
+
+    /**
      * @return array<int, class-string<Advice>>
      */
     private static function shippedAdvices(): array
@@ -247,7 +277,8 @@ class LarascanServiceProvider extends PackageServiceProvider
             ->hasCommand(ListChecksCommand::class)
             ->hasCommand(InstallCommand::class)
             ->hasCommand(AdviseCommand::class)
-            ->hasCommand(BaselineCommand::class);
+            ->hasCommand(BaselineCommand::class)
+            ->hasCommand(ProbeCommand::class);
     }
 
     public function packageBooted(): void
@@ -489,6 +520,25 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->singleton(Larascan::class, function (): Larascan {
             return new Larascan($this->app->make(CheckRegistry::class));
+        });
+
+        $this->app->singleton(ProbeRegistry::class, function (): ProbeRegistry {
+            /** @var array<string, array{enabled?: bool}> $config */
+            $config = $this->app->make('config')->get('larascan.probe.probes', []);
+
+            $registry = new ProbeRegistry($config);
+
+            foreach (self::shippedProbes() as $probeClass) {
+                /** @var Probe $probe */
+                $probe = $this->app->make($probeClass);
+                $registry->register($probe);
+            }
+
+            return $registry;
+        });
+
+        $this->app->singleton(Prober::class, function (): Prober {
+            return new Prober($this->app->make(ProbeRegistry::class));
         });
 
         $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(

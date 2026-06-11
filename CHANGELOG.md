@@ -2,6 +2,27 @@
 
 All notable changes to `baspa/larascan` will be documented in this file.
 
+## [2.2.0] — Unreleased
+
+### Added
+
+- **SARIF reporter.** `larascan --format=sarif --output=larascan.sarif` emits a SARIF 2.1.0 report (one result per finding) for GitHub Code Scanning. Any format can now be written to a file with `--output=PATH`.
+- **Baseline support.** New `larascan:baseline` command writes current findings to `larascan-baseline.json`; subsequent `larascan` runs suppress baselined findings (counted as `N baselined`, not hidden) so only *new* findings count toward `--fail-on`. Baseline identity is line-insensitive — a finding is hashed from its check id, file and normalized message, so line shifts don't break the baseline. Stale entries are reported with a hint to re-run the command.
+  - `larascan --baseline=PATH` — override the baseline path (resolution order: flag > `config('larascan.baseline')` > implicit `larascan-baseline.json` if present).
+  - `larascan --no-baseline` — ignore any baseline file.
+- **Runtime probe.** New `larascan:probe` command sends one real HTTP GET to the running app and verifies security headers/cookie flags are actually present in the response (catches middleware not running or a proxy stripping headers). New `probe.*` check ids, distinct from the static `headers.*` checks. Checks HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, CSP, cookie `Secure`/`HttpOnly`/`SameSite`, `Server`/`X-Powered-By` disclosure, and the http→https redirect. Findings against local targets (`localhost`/`127.0.0.1`/`*.test`/`*.local`) downgrade to Info. Flags: `--url`, `--fail-on`, `--probe=*`, `--timeout`, `--insecure`, `--ignore-errors`, `--only-failed`, `--format`. URL resolves from `--url` > `config('larascan.probe.url')` (env `LARASCAN_PROBE_URL`) > `app.url`.
+- New `Ecosystem` category.
+- `ecosystem.telescope-production` — Telescope enabled in production without an explicit `viewTelescope` gate.
+- `ecosystem.horizon-gate` — trivially-true `viewHorizon` gate, or no gate defined in production.
+- `ecosystem.pulse-gate` — trivially-true `viewPulse` gate, or no gate defined in production.
+- `ecosystem.debugbar-enabled` — Debugbar enabled at runtime in production.
+- `ecosystem.livewire-upload-rules` — Livewire temporary upload rules missing a `max:` size or with throttling middleware removed.
+- `files.disk-visibility` — public-visibility filesystem disk with a sensitive name/root, or s3 disk with no explicit visibility.
+- `config.mail-smtp-encryption` — remote SMTP mailer not forcing TLS.
+- `advise.webhook-signature` — POST webhook/callback routes without signature-verification middleware (non-gating advisory).
+
+All new checks were inspired by [securinglaravel.com](https://securinglaravel.com/).
+
 ## [2.1.0] — 2026-05-16
 
 ### Added

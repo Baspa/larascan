@@ -11,7 +11,7 @@
 [![Downloads](https://img.shields.io/packagist/dt/baspa/larascan.svg?style=flat-square)](https://packagist.org/packages/baspa/larascan)
 [![License](https://img.shields.io/packagist/l/baspa/larascan.svg?style=flat-square)](LICENSE.md)
 
-Security-focused static analysis for Laravel applications. One artisan command, **81 checks** across config, cookies, headers, auth, routing, models, SQL, XSS, files, injection, crypto, dependencies and more.
+Security-focused static analysis for Laravel applications. One artisan command, **88 checks** across config, cookies, headers, auth, routing, models, SQL, XSS, files, injection, crypto, dependencies, ecosystem packages and more — plus an optional runtime probe that verifies headers on the live app.
 
 > **Why LaraScan?** Most Laravel security issues come from misconfiguration or forgotten dev settings in production — debug on, secure cookies off, hardcoded API keys in code. LaraScan scans for them in one shot, AST-based where it matters, with sane defaults and a clean CI workflow.
 
@@ -82,8 +82,11 @@ Advise is intentionally non-gating: exit code is always 0. For architectural ite
 |---|---|---|
 | (none) | TTY / humans | Categorized output with a Report Card at the end |
 | `--format=json` | AI agents | Structured JSON. Auto-selected when [`laravel/agent-detector`](https://github.com/laravel/agent-detector) flags the run as an agent (Claude Code, Cursor, Codex, Copilot, etc.). |
+| `--format=sarif` | GitHub Code Scanning | [SARIF 2.1.0](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning) report with one result per finding. |
 
 Force JSON manually with `LARASCAN_AGENT_MODE=1` or `--format=json`.
+
+Any format can be written to a file with `--output=PATH`. For `--format=json` and `--format=sarif`, stdout still gets the human report (so CI logs stay readable); with `--format=human`, stdout only gets a `Report written to ...` confirmation. The exit code is unchanged either way.
 
 ## Configuration
 
@@ -106,14 +109,79 @@ php artisan larascan:install --workflow
 
 Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [docs/ci-integration.md](docs/ci-integration.md).
 
+### SARIF / GitHub Code Scanning
+
+Findings can show up as Code Scanning alerts on the Security tab and as PR annotations:
+
+```bash
+php artisan larascan --format=sarif --output=larascan.sarif
+```
+
+The published workflow already does this and uploads the report via `github/codeql-action/upload-sarif` (the workflow grants `security-events: write`; private repos need GitHub Advanced Security — remove the upload step if unavailable).
+
+Severity mapping:
+
+| Larascan severity | SARIF level | `security-severity` |
+|---|---|---|
+| critical | error | 9.8 |
+| high | error | 8.0 |
+| medium | warning | 5.5 |
+| low | note | 3.0 |
+| info | note | 0.0 |
+
+Findings without a file (config-level checks like `config.app-debug`) are anchored to `composer.json:1` so GitHub doesn't drop them; those results carry a `larascan.synthesizedLocation` property.
+
+## Adopting LaraScan on an existing app (baseline)
+
+A mature codebase will light up on the first scan. Rather than fixing everything before CI can go green, record the current findings as a **baseline** so CI only fails on *new* findings:
+
+```bash
+php artisan larascan:baseline   # writes larascan-baseline.json
+git add larascan-baseline.json && git commit -m "Add larascan baseline"
+```
+
+From then on, plain `php artisan larascan` runs suppress baselined findings — they're counted (`N baselined`) rather than hidden, so you can still see them — and only findings that aren't in the baseline count toward the `--fail-on` threshold. Chip away at the baselined findings over time; re-run `larascan:baseline` to shrink the file.
+
+Baseline identity is line-insensitive: a finding is matched on a hash of its check id, file and normalized message, so unrelated edits that shift line numbers don't break the baseline. When the source has changed enough that baselined findings no longer occur, the scan reports `N stale baseline entries` with a hint to re-run the command and prune them.
+
+```bash
+php artisan larascan --baseline=path/to/baseline.json   # override the path
+php artisan larascan --no-baseline                       # ignore the baseline entirely
+```
+
+Path resolution order: `--baseline` flag, then `config('larascan.baseline')`, then an implicit `larascan-baseline.json` in the project root if present. An explicitly named baseline (flag or config) that's missing or invalid is an error; the implicit default may simply be absent.
+
+## Runtime probe
+
+Static checks confirm the *config* is right; they can't tell you whether a middleware actually runs or whether a proxy strips a header on the way out. `larascan:probe` sends **one real HTTP GET** to the running app and verifies the security headers and cookie flags are actually present in the response:
+
+```bash
+php artisan larascan:probe --url=https://staging.example.test
+```
+
+The target URL resolves from `--url`, then `config('larascan.probe.url')` (env `LARASCAN_PROBE_URL`), then `app.url`. The probe checks HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, CSP, cookie `Secure`/`HttpOnly`/`SameSite` flags, `Server`/`X-Powered-By` disclosure, and the http→https redirect. These are reported under `probe.*` check ids, distinct from the static `headers.*` checks.
+
+Findings against local targets (`localhost`, `127.0.0.1`, `*.test`, `*.local`) are downgraded to Info — probing a dev box shouldn't fail CI.
+
+| Flag | Description |
+|---|---|
+| `--url=URL` | Target URL (overrides config/`app.url`) |
+| `--fail-on=SEVERITY` | Severity threshold for non-zero exit (default from `larascan.fail_on`, else `high`) |
+| `--probe=PATTERN` | Filter probes by id pattern, repeatable (e.g. `--probe=probe.cookie*`) |
+| `--timeout=SECONDS` | Request timeout (default 5) |
+| `--insecure` | Skip TLS certificate verification |
+| `--ignore-errors` | Exit 0 even when the request fails |
+| `--only-failed` | Hide passed and skipped probes |
+| `--format=human\|json` | Output format (json auto-selected for agents) |
+
 ## What's checked?
 
-81 checks across 16 categories. Some require optional packages — those checks self-skip when the package isn't installed.
+88 checks across 17 categories. Some require optional packages — those checks self-skip when the package isn't installed.
 
 <details>
-<summary><strong>Show all 81 checks</strong></summary>
+<summary><strong>Show all 88 checks</strong></summary>
 
-**Config (`config.*`)** — 9
+**Config (`config.*`)** — 10
 - `config.app-debug` — APP_DEBUG must be false in production
 - `config.app-key` — APP_KEY must be set
 - `config.app-env` — APP_ENV must not be a development value in production
@@ -123,6 +191,7 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `config.log-level` — Default log channel must not be at debug in production
 - `config.debug-blacklist` — debug_blacklist must redact sensitive env keys when debug is on
 - `config.trusted-proxies` — Trusted proxies must not be wildcard
+- `config.mail-smtp-encryption` — Remote SMTP mailers must force TLS encryption
 
 **Cookies & sessions (`cookies.*`)** — 7
 - `cookies.session-secure` — SESSION_SECURE_COOKIE must be true in production
@@ -182,11 +251,12 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `xss.url-javascript-protocol` — `javascript:` URLs in href/src are XSS sinks
 - `xss.htmlstring-cast` — Eloquent `$casts` / `casts()` must not cast attributes to `HtmlString::class`
 
-**Files (`files.*`)** — 4
+**Files (`files.*`)** — 5
 - `files.path-traversal` — Storage/File operations with user-controlled paths
 - `files.unlink-user-input` — `unlink()`/`rmdir()` in application code
 - `files.upload-mimes-validation` — Validation by extension rather than MIME
 - `files.public-executable-uploads` — Upload rules allowing .php/.phtml/.phar
+- `files.disk-visibility` — Public-visibility disk with a sensitive name/root, or an s3 disk with no explicit visibility
 
 **Injection (`injection.*`)** — 5
 - `injection.command` — `exec`/`shell_exec`/`system`/`passthru` calls
@@ -225,6 +295,13 @@ Exit codes: `0` clean, `1` findings ≥ `--fail-on`, `2` a check errored. See [d
 - `repo.gitleaks-history` — No high-entropy secrets in git history (last 100 commits)
 - `repo.debug-toolbars` — Debug packages (debugbar, telescope) must be in `require-dev` only
 - `repo.security-txt` — `public/.well-known/security.txt` should exist so researchers know how to report issues
+
+**Ecosystem packages (`ecosystem.*`)** — 5
+- `ecosystem.telescope-production` — Telescope must not be enabled in production without an explicit `viewTelescope` gate *(requires [laravel/telescope](https://github.com/laravel/telescope))*
+- `ecosystem.horizon-gate` — Horizon `viewHorizon` gate must not be trivially true, and must be defined in production *(requires [laravel/horizon](https://github.com/laravel/horizon))*
+- `ecosystem.pulse-gate` — Pulse `viewPulse` gate must not be trivially true, and must be defined in production *(requires [laravel/pulse](https://github.com/laravel/pulse))*
+- `ecosystem.debugbar-enabled` — Debugbar must not be enabled at runtime in production *(requires [barryvdh/laravel-debugbar](https://github.com/barryvdh/laravel-debugbar))*
+- `ecosystem.livewire-upload-rules` — Customized Livewire temporary uploads must keep a `max:` size rule and not strip throttle middleware *(requires [livewire/livewire](https://github.com/livewire/livewire))*
 
 </details>
 

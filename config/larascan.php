@@ -84,6 +84,26 @@ return [
         'dependencies.outdated-php' => ['enabled' => true],
     ],
 
+    /*
+     * Runtime probe (`php artisan larascan:probe`). Performs ONE real HTTP GET
+     * against the running app and verifies the live response headers/cookies
+     * match what the static checks expect.
+     */
+    'probe' => [
+        'url' => env('LARASCAN_PROBE_URL'),
+        'timeout' => 5,
+        'probes' => [
+            'probe.hsts' => ['enabled' => true],
+            'probe.x-content-type-options' => ['enabled' => true],
+            'probe.x-frame-options' => ['enabled' => true],
+            'probe.referrer-policy' => ['enabled' => true],
+            'probe.csp' => ['enabled' => true],
+            'probe.cookie-flags' => ['enabled' => true],
+            'probe.server-disclosure' => ['enabled' => true],
+            'probe.https-redirect' => ['enabled' => true],
+        ],
+    ],
+
     'ignore' => [
         'vendor/*',
         'node_modules/*',
