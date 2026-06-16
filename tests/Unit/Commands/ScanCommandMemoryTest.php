@@ -3,6 +3,22 @@
 declare(strict_types=1);
 
 use Baspa\Larascan\Commands\ScanCommand;
+use Illuminate\Console\OutputStyle;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+
+function makeScanCommand(BufferedOutput $buffer): ScanCommand
+{
+    $command = new ScanCommand;
+    $command->setOutput(new OutputStyle(new ArrayInput([]), $buffer));
+
+    return $command;
+}
+
+function callPrivate(object $object, string $method, mixed ...$args): mixed
+{
+    return (new ReflectionClass($object))->getMethod($method)->invoke($object, ...$args);
+}
 
 it('parses memory_limit shorthand into bytes', function (string $value, int $expected) {
     expect(ScanCommand::parseMemoryLimit($value))->toBe($expected);
@@ -70,4 +86,57 @@ it('reports a non-OOM fatal without the memory hint', function () {
         ->and($diagnostic['headline'])->toContain('fatal error')
         ->and(implode("\n", $diagnostic['details']))->not->toContain('memory_limit')
         ->and($diagnostic['details'])->toHaveCount(1);
+});
+
+it('raises the live memory_limit to the floor when configured lower', function () {
+    $original = ini_get('memory_limit');
+
+    try {
+        // Below the 512M floor but comfortably above the suite's live usage —
+        // PHP refuses to set a limit under current consumption.
+        ini_set('memory_limit', '256M');
+        callPrivate(makeScanCommand(new BufferedOutput), 'raiseMemoryFloor');
+
+        expect(ScanCommand::parseMemoryLimit((string) ini_get('memory_limit')))
+            ->toBe(512 * 1024 * 1024);
+    } finally {
+        ini_set('memory_limit', (string) $original);
+    }
+});
+
+it('writes the diagnostic to error output when rendered', function () {
+    $buffer = new BufferedOutput;
+    $command = makeScanCommand($buffer);
+
+    callPrivate($command, 'renderFatalDiagnostic', [
+        'headline' => 'larascan ran out of memory before the scan finished.',
+        'details' => ['  Allowed memory size exhausted', '  php -d memory_limit=-1 artisan larascan'],
+    ]);
+
+    expect($buffer->fetch())
+        ->toContain('ran out of memory')
+        ->toContain('memory_limit=-1');
+});
+
+it('stays silent on shutdown after a completed scan', function () {
+    $buffer = new BufferedOutput;
+    $command = makeScanCommand($buffer);
+
+    $completed = (new ReflectionClass($command))->getProperty('scanCompleted');
+    $completed->setValue($command, true);
+
+    $command->handleShutdown();
+
+    expect($buffer->fetch())->toBe('');
+});
+
+it('stays silent on shutdown when the last error is not a fatal', function () {
+    // Most recent error in the test process is non-fatal, so the handler emits
+    // nothing even though the scan was not marked completed.
+    $buffer = new BufferedOutput;
+    $command = makeScanCommand($buffer);
+
+    $command->handleShutdown();
+
+    expect($buffer->fetch())->toBe('');
 });

@@ -42,11 +42,13 @@ class ScanCommand extends Command
      */
     private const MEMORY_FLOOR_BYTES = 512 * 1024 * 1024;
 
+    /** Set once the scan and render finish so the shutdown handler stays silent. */
+    private bool $scanCompleted = false;
+
     public function handle(Larascan $larascan, ConsoleReporter $reporter): int
     {
         $this->raiseMemoryFloor();
-        $completed = false;
-        $this->registerFatalDiagnostic($completed);
+        $this->registerFatalDiagnostic();
 
         $failOnOption = $this->option('fail-on');
         $failOnConfig = config('larascan.fail_on');
@@ -131,7 +133,7 @@ class ScanCommand extends Command
 
         // Past the scan and render: any fatal from here on is not the silent-OOM
         // case the shutdown diagnostic is meant to catch.
-        $completed = true;
+        $this->scanCompleted = true;
 
         $counts = $result->counts();
         if ($counts['errored'] > 0 && ! $this->option('ignore-errors')) {
@@ -202,31 +204,48 @@ class ScanCommand extends Command
      * scan's try/catch and the process dies with exit 255 and no output. Register
      * a shutdown handler that turns such a fatal into a clear stderr diagnostic.
      */
-    private function registerFatalDiagnostic(bool &$completed): void
+    private function registerFatalDiagnostic(): void
     {
-        // Reserve a little headroom so the handler can still allocate (format and
-        // print) after an OOM, instead of dying silently a second time.
+        // Hold a little headroom so the handler can still allocate (format and
+        // print) after an OOM instead of dying silently a second time; freeing it
+        // is the first thing the shutdown closure does.
         $reserve = str_repeat(' ', 256 * 1024);
 
-        register_shutdown_function(function () use (&$completed, &$reserve): void {
+        register_shutdown_function(function () use (&$reserve): void {
             $reserve = null;
-
-            if ($completed) {
-                return;
-            }
-
-            $diagnostic = self::fatalDiagnostic(error_get_last());
-            if ($diagnostic === null) {
-                return;
-            }
-
-            $stderr = $this->output->getErrorStyle();
-            $stderr->newLine();
-            $stderr->error($diagnostic['headline']);
-            foreach ($diagnostic['details'] as $line) {
-                $stderr->writeln($line);
-            }
+            $this->handleShutdown();
         });
+    }
+
+    /**
+     * Surface a clear diagnostic if a fatal (e.g. OOM) aborted the scan. Public so
+     * it is directly testable; the registered closure frees its reserve first.
+     */
+    public function handleShutdown(): void
+    {
+        if ($this->scanCompleted) {
+            return;
+        }
+
+        $diagnostic = self::fatalDiagnostic(error_get_last());
+        if ($diagnostic === null) {
+            return;
+        }
+
+        $this->renderFatalDiagnostic($diagnostic);
+    }
+
+    /**
+     * @param  array{headline: string, details: array<int, string>}  $diagnostic
+     */
+    private function renderFatalDiagnostic(array $diagnostic): void
+    {
+        $stderr = $this->output->getErrorStyle();
+        $stderr->newLine();
+        $stderr->error($diagnostic['headline']);
+        foreach ($diagnostic['details'] as $line) {
+            $stderr->writeln($line);
+        }
     }
 
     /**
