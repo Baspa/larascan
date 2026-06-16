@@ -45,6 +45,9 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Run larascan
+        # Very large apps may need more memory than the PHP CLI default; larascan
+        # raises a 512M floor itself, but for big monorepos prepend `-d memory_limit=-1`:
+        #   run: php -d memory_limit=-1 artisan larascan ...
         run: php artisan larascan --fail-on=high --only-failed --format=sarif --output=larascan.sarif --no-interaction
 
       - name: Upload SARIF to GitHub Code Scanning

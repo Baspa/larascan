@@ -42,3 +42,20 @@ it('caches parsed AST per path', function () {
     expect($second)->toBe($first); // same array → cache hit
     unlink($path);
 });
+
+it('drops cached AST on flush', function () {
+    $path = __DIR__.'/fixtures/flushed.php';
+    @mkdir(dirname($path), 0755, true);
+    file_put_contents($path, "<?php\necho 1;\n");
+
+    $parser = new FileParser;
+    $first = $parser->parse($path);
+
+    $parser->flush();
+
+    file_put_contents($path, "<?php\necho 2;\n"); // mutate, then re-parse after flush
+    $second = $parser->parse($path);
+
+    expect($second)->not->toBe($first); // cache cleared → fresh parse
+    unlink($path);
+});

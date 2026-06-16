@@ -35,8 +35,19 @@ class ScanCommand extends Command
 
     protected $description = 'Run larascan security scan';
 
+    /**
+     * Memory floor (bytes) raised to defensively before a scan when the
+     * configured limit is lower. A full scan of a medium app peaks well below
+     * this; the headroom turns a would-be OOM into a completed run. See #8.
+     */
+    private const MEMORY_FLOOR_BYTES = 512 * 1024 * 1024;
+
     public function handle(Larascan $larascan, ConsoleReporter $reporter): int
     {
+        $this->raiseMemoryFloor();
+        $completed = false;
+        $this->registerFatalDiagnostic($completed);
+
         $failOnOption = $this->option('fail-on');
         $failOnConfig = config('larascan.fail_on');
         $failOnRaw = match (true) {
@@ -118,6 +129,10 @@ class ScanCommand extends Command
             $this->renderFormat($format, $result, $this->output, $onlyFailed, $reporter);
         }
 
+        // Past the scan and render: any fatal from here on is not the silent-OOM
+        // case the shutdown diagnostic is meant to catch.
+        $completed = true;
+
         $counts = $result->counts();
         if ($counts['errored'] > 0 && ! $this->option('ignore-errors')) {
             return 2;
@@ -129,6 +144,80 @@ class ScanCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Raise the process memory_limit to a safe floor when the configured limit
+     * is lower, so a full scan does not silently OOM. Unlimited (`-1`) and any
+     * already-higher limit are left untouched.
+     */
+    private function raiseMemoryFloor(): void
+    {
+        $current = self::parseMemoryLimit((string) ini_get('memory_limit'));
+
+        if ($current !== -1 && $current < self::MEMORY_FLOOR_BYTES) {
+            @ini_set('memory_limit', (string) self::MEMORY_FLOOR_BYTES);
+        }
+    }
+
+    /**
+     * Convert a php.ini memory_limit value into bytes. Returns -1 for unlimited.
+     */
+    public static function parseMemoryLimit(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === '-1') {
+            return -1;
+        }
+
+        $number = (int) $value;
+        $unit = strtolower(substr($value, -1));
+
+        return match ($unit) {
+            'g' => $number * 1024 * 1024 * 1024,
+            'm' => $number * 1024 * 1024,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
+    /**
+     * A PHP out-of-memory is a fatal error, not a Throwable, so it escapes the
+     * scan's try/catch and the process dies with exit 255 and no output. Register
+     * a shutdown handler that turns such a fatal into a clear stderr diagnostic.
+     */
+    private function registerFatalDiagnostic(bool &$completed): void
+    {
+        // Reserve a little headroom so the handler can still allocate (format and
+        // print) after an OOM, instead of dying silently a second time.
+        $reserve = str_repeat(' ', 256 * 1024);
+
+        register_shutdown_function(function () use (&$completed, &$reserve): void {
+            $reserve = null;
+
+            if ($completed) {
+                return;
+            }
+
+            $error = error_get_last();
+            if ($error === null || ! in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+                return;
+            }
+
+            $isOom = str_contains($error['message'], 'Allowed memory size');
+
+            $stderr = $this->output->getErrorStyle();
+            $stderr->newLine();
+            if ($isOom) {
+                $stderr->error('larascan ran out of memory before the scan finished.');
+                $stderr->writeln('  '.$error['message']);
+                $stderr->writeln('  Re-run with a higher limit, e.g. <comment>php -d memory_limit=-1 artisan larascan</comment>');
+            } else {
+                $stderr->error('larascan stopped on a fatal error before the scan finished.');
+                $stderr->writeln('  '.$error['message']);
+            }
+        });
     }
 
     /**
