@@ -43,4 +43,13 @@ final class FileParser
 
         return $this->cache[$path] = $ast;
     }
+
+    /**
+     * Release every cached AST. Useful between scans so the parsed node tree of
+     * each file is not retained for the lifetime of the process.
+     */
+    public function flush(): void
+    {
+        $this->cache = [];
+    }
 }

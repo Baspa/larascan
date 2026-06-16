@@ -292,6 +292,13 @@ class LarascanServiceProvider extends PackageServiceProvider
     {
         $this->bindRunners();
 
+        // Share one FileParser (and its AST cache) across every check and advice.
+        // Without this each file-scanning check gets its own parser and re-parses
+        // and retains the AST of every app/ file independently — for ~250 classes
+        // that multiplied into ~650 MB and a silent OOM. One shared cache parses
+        // each file once and keeps a single copy. See issue #8.
+        $this->app->singleton(FileParser::class);
+
         $this->app->bind(EnvNotCommittedCheck::class, fn (): EnvNotCommittedCheck => new EnvNotCommittedCheck(
             basePath: $this->app->basePath(),
         ));
@@ -302,7 +309,7 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(EnvCallsOutsideConfigCheck::class, fn (): EnvCallsOutsideConfigCheck => new EnvCallsOutsideConfigCheck(
             basePath: $this->app->basePath(),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(PublicSensitiveFilesCheck::class, fn (): PublicSensitiveFilesCheck => new PublicSensitiveFilesCheck(
@@ -311,32 +318,32 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(PhpinfoCheck::class, fn (): PhpinfoCheck => new PhpinfoCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(UnguardedModelCheck::class, fn (): UnguardedModelCheck => new UnguardedModelCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(UnguardCallCheck::class, fn (): UnguardCallCheck => new UnguardCallCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(ForeignKeyFillableCheck::class, fn (): ForeignKeyFillableCheck => new ForeignKeyFillableCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(ForceFillUserInputCheck::class, fn (): ForceFillUserInputCheck => new ForceFillUserInputCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(DdDumpDebugCheck::class, fn (): DdDumpDebugCheck => new DdDumpDebugCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(CustomErrorPagesCheck::class, fn (): CustomErrorPagesCheck => new CustomErrorPagesCheck(
@@ -345,7 +352,7 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(SensitiveInLogContextCheck::class, fn (): SensitiveInLogContextCheck => new SensitiveInLogContextCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(DependabotCheck::class, fn (): DependabotCheck => new DependabotCheck(
@@ -366,39 +373,39 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(HorizonGateCheck::class, fn (): HorizonGateCheck => new HorizonGateCheck(
             basePath: $this->app->basePath(),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
             app: $this->app,
         ));
 
         $this->app->bind(PulseGateCheck::class, fn (): PulseGateCheck => new PulseGateCheck(
             basePath: $this->app->basePath(),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
             app: $this->app,
         ));
 
         $this->app->bind(PasswordColumnPlainCheck::class, fn (): PasswordColumnPlainCheck => new PasswordColumnPlainCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(ApiAbilityScopingCheck::class, fn (): ApiAbilityScopingCheck => new ApiAbilityScopingCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(SignedUrlNoParamsCheck::class, fn (): SignedUrlNoParamsCheck => new SignedUrlNoParamsCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(WeakHashCheck::class, fn (): WeakHashCheck => new WeakHashCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(WeakRandomCheck::class, fn (): WeakRandomCheck => new WeakRandomCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(CipherNotPinnedCheck::class, fn (): CipherNotPinnedCheck => new CipherNotPinnedCheck(
@@ -407,32 +414,32 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(HardcodedSecretCheck::class, fn (): HardcodedSecretCheck => new HardcodedSecretCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(PasswordSelfGeneratedCheck::class, fn (): PasswordSelfGeneratedCheck => new PasswordSelfGeneratedCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(CommandInjectionCheck::class, fn (): CommandInjectionCheck => new CommandInjectionCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(ProcessShellCheck::class, fn (): ProcessShellCheck => new ProcessShellCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(UnserializeCheck::class, fn (): UnserializeCheck => new UnserializeCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(OpenRedirectCheck::class, fn (): OpenRedirectCheck => new OpenRedirectCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(BladeUnescapedCheck::class, fn (): BladeUnescapedCheck => new BladeUnescapedCheck(
@@ -441,12 +448,12 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(HtmlStringCheck::class, fn (): HtmlStringCheck => new HtmlStringCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(HtmlStringCastCheck::class, fn (): HtmlStringCastCheck => new HtmlStringCastCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(UrlJavascriptProtocolCheck::class, fn (): UrlJavascriptProtocolCheck => new UrlJavascriptProtocolCheck(
@@ -455,48 +462,48 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(PathTraversalCheck::class, fn (): PathTraversalCheck => new PathTraversalCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(UnlinkUserInputCheck::class, fn (): UnlinkUserInputCheck => new UnlinkUserInputCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(UploadMimesValidationCheck::class, fn (): UploadMimesValidationCheck => new UploadMimesValidationCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(PublicExecutableUploadsCheck::class, fn (): PublicExecutableUploadsCheck => new PublicExecutableUploadsCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
             publicPath: $this->app->publicPath(),
         ));
 
         $this->app->bind(SqlRawUserInputCheck::class, fn (): SqlRawUserInputCheck => new SqlRawUserInputCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(SqlRawOrderByCheck::class, fn (): SqlRawOrderByCheck => new SqlRawOrderByCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(SqlVariableTableColumnCheck::class, fn (): SqlVariableTableColumnCheck => new SqlVariableTableColumnCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(SqlValidationRuleInjectionCheck::class, fn (): SqlValidationRuleInjectionCheck => new SqlValidationRuleInjectionCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(OrWhereScopeBypassCheck::class, fn (): OrWhereScopeBypassCheck => new OrWhereScopeBypassCheck(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(MinimumStabilityDevCheck::class, fn (): MinimumStabilityDevCheck => new MinimumStabilityDevCheck(
@@ -543,12 +550,12 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(SignedUrlUserContextAdvice::class, fn (): SignedUrlUserContextAdvice => new SignedUrlUserContextAdvice(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(BroadcastChannelsFlagsAdvice::class, fn (): BroadcastChannelsFlagsAdvice => new BroadcastChannelsFlagsAdvice(
             basePath: $this->app->basePath(),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(OutdatedPackagesAdvice::class, fn (): OutdatedPackagesAdvice => new OutdatedPackagesAdvice(
@@ -558,12 +565,12 @@ class LarascanServiceProvider extends PackageServiceProvider
 
         $this->app->bind(ConfigValidatedAtBootAdvice::class, fn (): ConfigValidatedAtBootAdvice => new ConfigValidatedAtBootAdvice(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(LivewirePublicPropertiesAdvice::class, fn (): LivewirePublicPropertiesAdvice => new LivewirePublicPropertiesAdvice(
             appPath: $this->app->basePath('app'),
-            parser: new FileParser,
+            parser: $this->app->make(FileParser::class),
         ));
 
         $this->app->bind(StagingKeyInProductionAdvice::class, fn (): StagingKeyInProductionAdvice => new StagingKeyInProductionAdvice(
