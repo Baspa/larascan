@@ -153,11 +153,26 @@ class ScanCommand extends Command
      */
     private function raiseMemoryFloor(): void
     {
-        $current = self::parseMemoryLimit((string) ini_get('memory_limit'));
+        $target = self::memoryFloorTarget((string) ini_get('memory_limit'));
+
+        if ($target !== null) {
+            @ini_set('memory_limit', (string) $target);
+        }
+    }
+
+    /**
+     * The memory_limit (in bytes) to raise to, or null when the current limit is
+     * unlimited or already at/above the floor.
+     */
+    public static function memoryFloorTarget(string $currentLimit): ?int
+    {
+        $current = self::parseMemoryLimit($currentLimit);
 
         if ($current !== -1 && $current < self::MEMORY_FLOOR_BYTES) {
-            @ini_set('memory_limit', (string) self::MEMORY_FLOOR_BYTES);
+            return self::MEMORY_FLOOR_BYTES;
         }
+
+        return null;
     }
 
     /**
@@ -200,24 +215,47 @@ class ScanCommand extends Command
                 return;
             }
 
-            $error = error_get_last();
-            if ($error === null || ! in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+            $diagnostic = self::fatalDiagnostic(error_get_last());
+            if ($diagnostic === null) {
                 return;
             }
 
-            $isOom = str_contains($error['message'], 'Allowed memory size');
-
             $stderr = $this->output->getErrorStyle();
             $stderr->newLine();
-            if ($isOom) {
-                $stderr->error('larascan ran out of memory before the scan finished.');
-                $stderr->writeln('  '.$error['message']);
-                $stderr->writeln('  Re-run with a higher limit, e.g. <comment>php -d memory_limit=-1 artisan larascan</comment>');
-            } else {
-                $stderr->error('larascan stopped on a fatal error before the scan finished.');
-                $stderr->writeln('  '.$error['message']);
+            $stderr->error($diagnostic['headline']);
+            foreach ($diagnostic['details'] as $line) {
+                $stderr->writeln($line);
             }
         });
+    }
+
+    /**
+     * Build the stderr diagnostic for a fatal that aborted the scan, or null when
+     * the last error is not a reportable fatal (so normal runs stay silent).
+     *
+     * @param  array{type: int, message: string, file: string, line: int}|null  $error
+     * @return array{headline: string, details: array<int, string>}|null
+     */
+    public static function fatalDiagnostic(?array $error): ?array
+    {
+        if ($error === null || ! in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+            return null;
+        }
+
+        if (str_contains($error['message'], 'Allowed memory size')) {
+            return [
+                'headline' => 'larascan ran out of memory before the scan finished.',
+                'details' => [
+                    '  '.$error['message'],
+                    '  Re-run with a higher limit, e.g. <comment>php -d memory_limit=-1 artisan larascan</comment>',
+                ],
+            ];
+        }
+
+        return [
+            'headline' => 'larascan stopped on a fatal error before the scan finished.',
+            'details' => ['  '.$error['message']],
+        ];
     }
 
     /**
