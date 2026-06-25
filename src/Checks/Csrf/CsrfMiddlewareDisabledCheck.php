@@ -34,7 +34,7 @@ final class CsrfMiddlewareDisabledCheck extends AbstractCheck
 
     public function name(): string
     {
-        return 'VerifyCsrfToken middleware must be registered';
+        return 'CSRF protection middleware must be registered';
     }
 
     /**
@@ -42,14 +42,24 @@ final class CsrfMiddlewareDisabledCheck extends AbstractCheck
      */
     public function run(): iterable
     {
-        if (MiddlewareIntrospection::anyMatching($this->app, ['VerifyCsrfToken'])) {
+        // The CSRF middleware has been renamed across Laravel versions, so match
+        // every name it has shipped under. Both deprecated aliases extend the
+        // current class:
+        //   - VerifyCsrfToken       (Laravel <= 10, and as a deprecated alias)
+        //   - ValidateCsrfToken     (Laravel 11 / 12, deprecated alias since 13)
+        //   - PreventRequestForgery (Laravel 13+, registered in the default web group)
+        if (MiddlewareIntrospection::anyMatching($this->app, [
+            'VerifyCsrfToken',
+            'ValidateCsrfToken',
+            'PreventRequestForgery',
+        ])) {
             return;
         }
 
         yield new Finding(
             checkId: $this->id(),
             severity: $this->severity(),
-            message: 'VerifyCsrfToken middleware is not registered — POST/PUT/PATCH/DELETE routes accept requests without CSRF tokens, enabling cross-site request forgery.',
+            message: 'CSRF protection middleware (PreventRequestForgery / ValidateCsrfToken / VerifyCsrfToken) is not registered — POST/PUT/PATCH/DELETE routes accept requests without CSRF tokens, enabling cross-site request forgery.',
         );
     }
 }
