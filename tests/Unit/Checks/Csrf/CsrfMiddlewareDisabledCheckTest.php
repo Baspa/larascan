@@ -26,6 +26,23 @@ it('passes when VerifyCsrfToken is in the web middleware group', function () {
     expect(iterator_to_array((new CsrfMiddlewareDisabledCheck($this->app))->run()))->toBeEmpty();
 });
 
+it('passes when the CSRF middleware is registered under any of its framework names', function (string $fqcn) {
+    $kernel = $this->app->make(Kernel::class);
+    $reflection = new ReflectionClass($kernel);
+    $reflection->getProperty('middlewareGroups')->setValue($kernel, [
+        'web' => [$fqcn],
+    ]);
+
+    expect(iterator_to_array((new CsrfMiddlewareDisabledCheck($this->app))->run()))->toBeEmpty();
+})->with([
+    // Laravel <= 10
+    'Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken',
+    // Laravel 11 / 12 (deprecated alias)
+    'Illuminate\\Foundation\\Http\\Middleware\\ValidateCsrfToken',
+    // Laravel 13+
+    'Illuminate\\Foundation\\Http\\Middleware\\PreventRequestForgery',
+]);
+
 it('fails when VerifyCsrfToken is missing from all middleware structures', function () {
     $kernel = $this->app->make(Kernel::class);
     $reflection = new ReflectionClass($kernel);
@@ -39,5 +56,5 @@ it('fails when VerifyCsrfToken is missing from all middleware structures', funct
     expect($findings)->toHaveCount(1)
         ->and($findings[0]->severity)->toBe(Severity::Critical)
         ->and($findings[0]->checkId)->toBe('csrf.middleware-disabled')
-        ->and($findings[0]->message)->toContain('VerifyCsrfToken middleware is not registered');
+        ->and($findings[0]->message)->toContain('CSRF protection middleware');
 });
