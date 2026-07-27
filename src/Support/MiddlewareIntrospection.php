@@ -98,13 +98,11 @@ final class MiddlewareIntrospection
                 continue;
             }
 
-            try {
-                $file = (new ReflectionClass($class))->getFileName();
-            } catch (Throwable) {
-                continue;
-            }
+            // class_exists() has already autoloaded it, so reflection cannot throw
+            // here. getFileName() still returns false for internal classes.
+            $file = (new ReflectionClass($class))->getFileName();
 
-            if ($file === false || ! is_readable($file)) {
+            if ($file === false) {
                 continue;
             }
 

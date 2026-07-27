@@ -87,3 +87,13 @@ it('finds a header name in the source of a registered middleware', function () {
     expect(MiddlewareIntrospection::anyMentioningInSource($this->app, 'Strict-Transport-Security'))->toBeTrue()
         ->and(MiddlewareIntrospection::anyMentioningInSource($this->app, 'X-Frame-Options'))->toBeFalse();
 });
+
+it('skips internal classes that have no source file', function () {
+    $kernel = $this->app->make(Kernel::class);
+    $reflection = new ReflectionClass($kernel);
+    $reflection->getProperty('middlewareGroups')->setValue($kernel, [
+        'web' => [stdClass::class],
+    ]);
+
+    expect(MiddlewareIntrospection::anyMentioningInSource($this->app, 'Strict-Transport-Security'))->toBeFalse();
+});

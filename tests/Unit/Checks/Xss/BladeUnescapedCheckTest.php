@@ -104,3 +104,14 @@ it('still flags a sanitizer call concatenated with raw output', function () {
 
     expect(iterator_to_array((new BladeUnescapedCheck($this->tmpDir.'/views'))->run()))->toHaveCount(1);
 });
+
+it('still flags a sanitizer whose closing paren does not wrap the expression', function () {
+    // 'e($safe).foo($raw)' opens with a sanitizer and ends with ")", so only
+    // balancing the parens reveals that $raw is emitted unsanitized.
+    file_put_contents(
+        $this->tmpDir.'/views/trailing.blade.php',
+        "{!! e(\$safe).foo(\$raw) !!}\n",
+    );
+
+    expect(iterator_to_array((new BladeUnescapedCheck($this->tmpDir.'/views'))->run()))->toHaveCount(1);
+});
