@@ -16,6 +16,8 @@ final class HstsCheck extends AbstractCheck
 {
     private const KEYWORDS = ['Hsts', 'StrictTransportSecurity', 'SecureHeaders'];
 
+    private const HEADER = 'Strict-Transport-Security';
+
     public function __construct(
         private readonly Application $app,
     ) {}
@@ -46,6 +48,14 @@ final class HstsCheck extends AbstractCheck
     public function run(): iterable
     {
         if (MiddlewareIntrospection::anyMatching($this->app, self::KEYWORDS)) {
+            return;
+        }
+
+        // No package owns this header, so the middleware can be called anything —
+        // "SecurityHeaders" is a common choice and matches none of the keywords
+        // above. Fall back to reading the registered middleware for the header
+        // name itself, which is what actually decides whether it gets sent.
+        if (MiddlewareIntrospection::anyMentioningInSource($this->app, self::HEADER)) {
             return;
         }
 

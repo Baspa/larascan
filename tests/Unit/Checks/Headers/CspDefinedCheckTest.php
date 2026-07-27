@@ -37,3 +37,21 @@ it('passes when CSP middleware is registered', function () {
 
     expect(iterator_to_array((new CspDefinedCheck($this->app))->run()))->toBeEmpty();
 });
+
+it('passes when a subclass of AddCspHeaders is registered', function () {
+    if (! class_exists(AddCspHeaders::class)) {
+        $this->markTestSkipped('spatie/laravel-csp not installed');
+    }
+
+    // Apps subclass AddCspHeaders to skip the policy on vendor dashboards; the
+    // subclass name need not contain "AddCspHeaders".
+    $subclass = new class extends AddCspHeaders {};
+
+    $kernel = $this->app->make(Kernel::class);
+    $reflection = new ReflectionClass($kernel);
+    $reflection->getProperty('middlewareGroups')->setValue($kernel, [
+        'web' => [$subclass::class],
+    ]);
+
+    expect(iterator_to_array((new CspDefinedCheck($this->app))->run()))->toBeEmpty();
+});

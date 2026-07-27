@@ -5,7 +5,9 @@ declare(strict_types=1);
 use Baspa\Larascan\Checks\Headers\HstsCheck;
 use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\Severity;
+use Baspa\Larascan\Tests\Fixtures\Middleware\SecurityHeaders;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 
 it('exposes correct metadata', function () {
     $check = new HstsCheck($this->app);
@@ -61,4 +63,24 @@ it('fails with declared severity in production', function () {
     $findings = iterator_to_array((new HstsCheck($this->app))->run());
     expect($findings)->toHaveCount(1)
         ->and($findings[0]->severity)->toBe(Severity::High);
+});
+
+it('passes when a differently-named middleware actually sets the header', function () {
+    $kernel = $this->app->make(Kernel::class);
+    $reflection = new ReflectionClass($kernel);
+    $reflection->getProperty('middlewareGroups')->setValue($kernel, [
+        'web' => [SecurityHeaders::class],
+    ]);
+
+    expect(iterator_to_array((new HstsCheck($this->app))->run()))->toBeEmpty();
+});
+
+it('still fails when a registered middleware never mentions the header', function () {
+    $kernel = $this->app->make(Kernel::class);
+    $reflection = new ReflectionClass($kernel);
+    $reflection->getProperty('middlewareGroups')->setValue($kernel, [
+        'web' => [SubstituteBindings::class],
+    ]);
+
+    expect(iterator_to_array((new HstsCheck($this->app))->run()))->toHaveCount(1);
 });
