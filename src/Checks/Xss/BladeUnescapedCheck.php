@@ -46,6 +46,39 @@ final class BladeUnescapedCheck extends AbstractCheck
     /**
      * @return iterable<Finding>
      */
+    /**
+     * True when the whole expression is one call to a function that already
+     * neutralises HTML, so {!! !!} is not reintroducing an XSS sink.
+     *
+     * Laravel's own published plain-text mail layout is {!! strip_tags($slot) !!}
+     * on every line, so without this every app that runs `vendor:publish` on the
+     * mail views inherits four high-severity findings it cannot act on — the
+     * body is text/plain, and escaping it would emit literal &amp; to readers.
+     */
+    private static function isSanitized(string $expression): bool
+    {
+        if (preg_match('/^\s*(?:strip_tags|e|htmlspecialchars|htmlentities)\s*\((.*)\)\s*$/s', $expression, $m) !== 1) {
+            return false;
+        }
+
+        // Guard against 'e($a) . $b', where the trailing ")" closes the first
+        // call rather than wrapping the whole expression.
+        $depth = 0;
+        foreach (str_split($m[1]) as $char) {
+            $depth += match ($char) {
+                '(' => 1,
+                ')' => -1,
+                default => 0,
+            };
+
+            if ($depth < 0) {
+                return false;
+            }
+        }
+
+        return $depth === 0;
+    }
+
     public function run(): iterable
     {
         $iterator = new RecursiveIteratorIterator(
@@ -78,6 +111,10 @@ final class BladeUnescapedCheck extends AbstractCheck
                 $offset = $match[1];
 
                 if (! str_contains($expression, '$')) {
+                    continue;
+                }
+
+                if (self::isSanitized($expression)) {
                     continue;
                 }
 

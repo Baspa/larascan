@@ -23,6 +23,12 @@ All notable changes to `baspa/larascan` will be documented in this file.
 
 All new checks were inspired by [securinglaravel.com](https://securinglaravel.com/).
 
+### Fixed
+
+- **`headers.csp-defined` no longer fires when a subclass of `AddCspHeaders` is registered.** Apps commonly subclass it to skip the policy on routes they don't control (Horizon, Pulse), and the subclass name need not contain `AddCspHeaders`, so the check reported a missing policy that was in fact active. Detection now also matches by inheritance.
+- **`headers.hsts` no longer fires when a differently-named middleware sets the header.** No package owns `Strict-Transport-Security`, so the middleware can be called anything — `SecurityHeaders` is a common choice and matched none of the keywords. When name matching fails, the check now reads the registered middleware for the header name itself.
+- **`xss.blade-unescaped` no longer flags output that is already sanitized.** `{!! strip_tags($slot) !!}` is Laravel's own published plain-text mail layout, so every app that publishes the mail views inherited four high-severity findings it could not act on — the body is `text/plain`, and escaping it would emit a literal `&amp;`. Whole-expression calls to `strip_tags`, `e`, `htmlspecialchars` and `htmlentities` are now skipped; a sanitizer concatenated with raw output is still reported.
+
 ## [2.1.0] — 2026-05-16
 
 ### Added

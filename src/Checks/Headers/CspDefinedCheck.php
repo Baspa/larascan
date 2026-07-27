@@ -52,6 +52,15 @@ final class CspDefinedCheck extends AbstractCheck
             return;
         }
 
+        // Apps routinely subclass AddCspHeaders to skip the policy on routes they
+        // don't control (Horizon, Pulse and friends rely on inline scripts). The
+        // subclass is registered instead of the parent and its name need not
+        // contain "AddCspHeaders", so name matching alone reports a policy that
+        // is in fact active.
+        if (MiddlewareIntrospection::anySubclassOf($this->app, 'Spatie\\Csp\\AddCspHeaders')) {
+            return;
+        }
+
         /** @var Repository $config */
         $config = $this->app->make('config');
         $env = (string) ($config->get('app.env') ?? '');

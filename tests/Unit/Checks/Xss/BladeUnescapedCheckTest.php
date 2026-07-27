@@ -85,3 +85,33 @@ it('reports the correct line number', function () {
     expect($findings)->toHaveCount(1)
         ->and($findings[0]->line)->toBe(4);
 });
+
+it('does not flag output already passed through a sanitizer', function () {
+    // Laravel's own published plain-text mail layout, verbatim.
+    file_put_contents(
+        $this->tmpDir.'/views/layout.blade.php',
+        "{!! strip_tags(\$header) !!}\n\n{!! strip_tags(\$slot) !!}\n\n{!! strip_tags(\$footer ?? '') !!}\n",
+    );
+
+    expect(iterator_to_array((new BladeUnescapedCheck($this->tmpDir.'/views'))->run()))->toBeEmpty();
+});
+
+it('still flags a sanitizer call concatenated with raw output', function () {
+    file_put_contents(
+        $this->tmpDir.'/views/mixed.blade.php',
+        "{!! e(\$safe).\$raw !!}\n",
+    );
+
+    expect(iterator_to_array((new BladeUnescapedCheck($this->tmpDir.'/views'))->run()))->toHaveCount(1);
+});
+
+it('still flags a sanitizer whose closing paren does not wrap the expression', function () {
+    // 'e($safe).foo($raw)' opens with a sanitizer and ends with ")", so only
+    // balancing the parens reveals that $raw is emitted unsanitized.
+    file_put_contents(
+        $this->tmpDir.'/views/trailing.blade.php',
+        "{!! e(\$safe).foo(\$raw) !!}\n",
+    );
+
+    expect(iterator_to_array((new BladeUnescapedCheck($this->tmpDir.'/views'))->run()))->toHaveCount(1);
+});
