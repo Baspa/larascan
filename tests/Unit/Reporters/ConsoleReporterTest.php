@@ -87,6 +87,32 @@ it('shows file:line for findings that have it', function () {
     expect($text)->toContain('app/Http/UserController.php:42');
 });
 
+it('neutralizes control characters and markup in scanned file names and messages', function () {
+    $evil = "public/uploads/\e[2J\e[1A<href=https://evil.example>ok</>\n    ✓ fake.pass.row.php";
+
+    $result = (new ScanResult)
+        ->record('files.public-executable-uploads', CheckStatus::Failed, [
+            new Finding(
+                checkId: 'files.public-executable-uploads',
+                severity: Severity::High,
+                message: "Executable upload <fg=green>safe</>\e[31m",
+                file: $evil,
+                line: 3,
+            ),
+        ])
+        ->record('dependencies.npm-audit', CheckStatus::Skipped, [], "no \e[2Jpackage.json");
+
+    $output = new BufferedOutput;
+    (new ConsoleReporter)->render($result, $output);
+    $text = $output->fetch();
+
+    expect($text)->not->toContain("\e")
+        ->and($text)->not->toContain("\n    ✓ fake.pass.row.php")
+        ->and($text)->toContain('<href=https://evil.example>ok</>')
+        ->and($text)->toContain('<fg=green>safe</>')
+        ->and($text)->toContain('skipped — no [2Jpackage.json');
+});
+
 it('groups checks under category headers', function () {
     $result = (new ScanResult)
         ->record('config.app-debug', CheckStatus::Passed, [])

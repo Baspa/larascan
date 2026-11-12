@@ -70,7 +70,7 @@ class ProbeCommand extends Command
         /** @var array<int, string> $patterns */
         $patterns = (array) $this->option('probe');
 
-        $this->line("Probing {$url} — one GET request will be sent.");
+        $this->line('Probing '.ProbeContextFactory::stripUserInfo($url).' — one GET request will be sent.');
 
         // Scope the prober to the matching probes so a filtered run only ever
         // probes (and reports) the requested ids.
