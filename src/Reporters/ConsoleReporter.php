@@ -6,6 +6,7 @@ namespace Baspa\Larascan\Reporters;
 
 use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\CheckStatus;
+use Baspa\Larascan\Support\ConsoleText;
 use Baspa\Larascan\Support\Finding;
 use Baspa\Larascan\Support\ScanResult;
 use Baspa\Larascan\Support\Severity;
@@ -91,7 +92,7 @@ final class ConsoleReporter
                 $output->writeln(sprintf(
                     '     <fg=yellow>⊘</> %-45s <fg=gray>%s</>',
                     $checkId,
-                    'skipped — '.($result->skipReasonOf($checkId) ?? 'unknown'),
+                    'skipped — '.ConsoleText::escape($result->skipReasonOf($checkId) ?? 'unknown'),
                 ));
 
                 return;
@@ -100,7 +101,7 @@ final class ConsoleReporter
                 $output->writeln(sprintf(
                     '     <fg=red;options=bold>!</> %-45s <fg=red>ERROR — %s</>',
                     $checkId,
-                    $result->errorOf($checkId) ?? 'unknown',
+                    ConsoleText::escape($result->errorOf($checkId) ?? 'unknown'),
                 ));
 
                 return;
@@ -135,13 +136,13 @@ final class ConsoleReporter
                     $location = '';
                     if ($f->file !== null) {
                         $loc = $f->file.($f->line !== null ? ':'.$f->line : '');
-                        $location = sprintf(' <fg=gray>(%s)</>', $loc);
+                        $location = sprintf(' <fg=gray>(%s)</>', ConsoleText::escape($loc));
                     }
                     $output->writeln(sprintf(
                         '        <fg=gray>%s</> %s %s%s',
                         $connector,
                         $this->severityLabel($f->severity),
-                        $f->message,
+                        ConsoleText::escape($f->message),
                         $location,
                     ));
                 }

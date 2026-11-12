@@ -183,6 +183,31 @@ it('leaves httpRedirect null when the http redirect probe throws', function () {
         ->and($context->status)->toBe(200);
 });
 
+it('never sends URL credentials on the plain-http redirect request', function () {
+    Http::fake(fn ($request) => str_starts_with($request->url(), 'https://')
+        ? Http::response('', 200, [])
+        : Http::response('', 301, ['Location' => 'https://example.com/']));
+
+    $context = (new ProbeContextFactory)->fromUrl('https://deploy:secret@example.com/app', 5, false);
+
+    expect($context->httpRedirect)->toMatchArray(['status' => 301]);
+
+    Http::assertSent(fn ($request) => $request->url() === 'http://example.com/app');
+    Http::assertNotSent(fn ($request) => str_starts_with($request->url(), 'http://')
+        && (str_contains($request->url(), '@') || $request->hasHeader('Authorization')));
+});
+
+it('strips userinfo from URLs and leaves others untouched', function (string $input, string $expected) {
+    expect(ProbeContextFactory::stripUserInfo($input))->toBe($expected);
+})->with([
+    'user and password' => ['https://user:pass@example.com/a?b=c@d', 'https://example.com/a?b=c@d'],
+    'user only' => ['https://user@example.com', 'https://example.com'],
+    'at sign in password' => ['https://user:p@ss@example.com/', 'https://example.com/'],
+    'no userinfo' => ['https://example.com/path', 'https://example.com/path'],
+    'at sign only in path' => ['https://example.com/@me', 'https://example.com/@me'],
+    'at sign only in query' => ['https://example.com?mail=a@b.c', 'https://example.com?mail=a@b.c'],
+]);
+
 it('normalizes an empty Location header to null on the redirect capture', function () {
     Http::fake([
         'https://example.com' => Http::response('', 200, []),

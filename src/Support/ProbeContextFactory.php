@@ -51,6 +51,15 @@ final class ProbeContextFactory
     }
 
     /**
+     * Drop any user:password@ from the URL's authority so credentials are never
+     * sent over the plain-HTTP request or echoed to the console.
+     */
+    public static function stripUserInfo(string $url): string
+    {
+        return preg_replace('~^([a-z][a-z0-9+.\-]*://)[^/?#]*@~i', '$1', $url) ?? $url;
+    }
+
+    /**
      * Issue a second GET to the http:// variant without following redirects,
      * capturing the status + Location so HttpsRedirectProbe can verify the
      * app upgrades plain HTTP to HTTPS. Failures leave httpRedirect null.
@@ -59,7 +68,7 @@ final class ProbeContextFactory
      */
     private function captureHttpRedirect(string $url, int $timeout, bool $insecure): ?array
     {
-        $httpUrl = preg_replace('/^https:/i', 'http:', $url);
+        $httpUrl = preg_replace('/^https:/i', 'http:', self::stripUserInfo($url));
         if (! is_string($httpUrl)) {
             return null;
         }

@@ -8,6 +8,7 @@ use Baspa\Larascan\Support\AdviceRegistry;
 use Baspa\Larascan\Support\AdviceResult;
 use Baspa\Larascan\Support\AdviceStatus;
 use Baspa\Larascan\Support\Category;
+use Baspa\Larascan\Support\ConsoleText;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class AdviceConsoleReporter
@@ -57,7 +58,7 @@ final class AdviceConsoleReporter
                 }
                 $output->writeln(sprintf('     <fg=yellow>⚑</> %s', $id));
                 if ($outcome->summary !== '') {
-                    $output->writeln(sprintf('        <fg=gray>└─</> %s', $outcome->summary));
+                    $output->writeln(sprintf('        <fg=gray>└─</> %s', ConsoleText::escape($outcome->summary)));
                 }
                 $lastKey = array_key_last($outcome->evidence);
                 foreach ($outcome->evidence as $i => $evidence) {
@@ -65,12 +66,12 @@ final class AdviceConsoleReporter
                     $location = '';
                     if ($evidence->file !== null) {
                         $loc = $evidence->file.($evidence->line !== null ? ':'.$evidence->line : '');
-                        $location = sprintf(' <fg=gray>(%s)</>', $loc);
+                        $location = sprintf(' <fg=gray>(%s)</>', ConsoleText::escape($loc));
                     }
                     $output->writeln(sprintf(
                         '           <fg=gray>%s</> %s%s',
                         $connector,
-                        $evidence->message,
+                        ConsoleText::escape($evidence->message),
                         $location,
                     ));
                 }
