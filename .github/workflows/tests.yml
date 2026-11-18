@@ -12,6 +12,8 @@ jobs:
   pest:
     name: Pest (PHP ${{ matrix.php }}, Laravel ${{ matrix.laravel }})
     runs-on: ubuntu-latest
+    # Laravel 12's container still calls spl_object_hash(), deprecated in PHP 8.6.
+    continue-on-error: ${{ matrix.php == '8.6' && matrix.laravel == '12.*' }}
     strategy:
       fail-fast: false
       matrix:
