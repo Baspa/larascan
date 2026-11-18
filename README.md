@@ -276,7 +276,7 @@ Findings against local targets (`localhost`, `127.0.0.1`, `*.test`, `*.local`) a
 - `dependencies.composer-audit` — wraps `composer audit` for PHP CVE detection
 - `dependencies.npm-audit` — wraps `npm audit` when a `package.json` is present
 - `dependencies.minimum-stability-dev` — composer.json minimum-stability is 'dev' without prefer-stable
-- `dependencies.outdated-php` — PHP version at or near end-of-life
+- `dependencies.outdated-php` — PHP version past active support or near end-of-life: medium when the branch only gets security fixes, high within 12 months of or after end-of-life (built-in php.net support table, no network calls)
 
 **PHP (`php.*`)** — 5
 - `php.expose-php` — expose_php must be off

@@ -6,6 +6,17 @@ Some versions were tagged twice on the same commit (`v2.1.0` and `v3.0.0`, `v3.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`csrf.except-suspicious` now sees the except list from `bootstrap/app.php`.** Since Laravel 11, apps set it with `$middleware->preventRequestForgery(except: [...])` or the deprecated `validateCsrfTokens(except: [...])`. Laravel keeps that list outside the middleware's `$except` property, so the check never saw it in a standard Laravel 13 app. It now reads the merged list from the CSRF middleware registered in the HTTP kernel (`PreventRequestForgery`, or an app subclass such as `App\Http\Middleware\VerifyCsrfToken`) and reports each entry once. Apps with wildcard exceptions in `bootstrap/app.php` may see new findings.
+- **`cookies.encrypt-excludes` now sees `encryptCookies(except: [...])` from `bootstrap/app.php`.** Laravel keeps that list outside the middleware's `$except` property too. The check now reads both lists from the `EncryptCookies` middleware registered in the HTTP kernel, including an app subclass, and reports each cookie once. Apps that exclude sensitive cookies in `bootstrap/app.php` may see new findings.
+- **`dependencies.outdated-php` can fire again.** It only flagged PHP below 8.2, which larascan does not run on. It now uses a built-in support table for PHP 8.3 to 8.6, with dates from php.net: high when security support has ended or ends within 12 months, medium when the branch only gets security fixes. The message names the end date and the oldest branch still in active support. Outside production the finding is still downgraded to info. PHP 8.3 now gets a medium finding, because its active support ended on 2025-12-31. The check makes no network calls, and branches newer than 8.6 give no finding.
+
+### Changed
+
+- `symfony/process` constraint is now `^7.4.5||^8.0`, matching what Laravel 13 already requires.
+- `dependencies.outdated-php` is now named "PHP version past active support or near end-of-life".
+
 ## [4.0.0] — 2026-11-18
 
 ### Removed
