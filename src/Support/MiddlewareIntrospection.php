@@ -82,6 +82,27 @@ final class MiddlewareIntrospection
     }
 
     /**
+     * @template T of object
+     *
+     * @param  class-string<T>  $baseClass
+     * @return array<int, class-string<T>>
+     */
+    public static function registeredSubclassesOf(object $app, string $baseClass): array
+    {
+        $classes = [];
+
+        foreach (self::listMiddlewareFqcns($app) as $fqcn) {
+            $class = self::classPart($fqcn);
+
+            if ($class !== '' && class_exists($class) && is_a($class, $baseClass, true)) {
+                $classes[] = $class;
+            }
+        }
+
+        return array_values(array_unique($classes));
+    }
+
+    /**
      * True when the source of any registered middleware mentions $needle.
      *
      * For headers that no package owns, the class name says nothing — an app
