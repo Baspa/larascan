@@ -77,6 +77,18 @@ it('tolerates parameters and classes that do not exist', function () {
         ->and(MiddlewareIntrospection::anyMentioningInSource($this->app, 'Strict-Transport-Security'))->toBeFalse();
 });
 
+it('lists each registered middleware that is or extends a class once', function () {
+    $kernel = $this->app->make(Kernel::class);
+    $reflection = new ReflectionClass($kernel);
+    $reflection->getProperty('middlewareGroups')->setValue($kernel, [
+        'web' => [PolicyMiddleware::class, AppPolicyTweaks::class.':loose', SecurityHeaders::class],
+        'api' => [AppPolicyTweaks::class, 'App\\Http\\Middleware\\DoesNotExist'],
+    ]);
+
+    expect(MiddlewareIntrospection::registeredSubclassesOf($this->app, PolicyMiddleware::class))
+        ->toBe([PolicyMiddleware::class, AppPolicyTweaks::class]);
+});
+
 it('finds a header name in the source of a registered middleware', function () {
     $kernel = $this->app->make(Kernel::class);
     $reflection = new ReflectionClass($kernel);

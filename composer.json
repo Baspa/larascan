@@ -33,7 +33,7 @@
         "laravel/agent-detector": "^2.0",
         "nikic/php-parser": "^5.0",
         "spatie/laravel-package-tools": "^1.93",
-        "symfony/process": "^7.0||^8.0",
+        "symfony/process": "^7.4.5||^8.0",
         "symfony/yaml": "^7.0||^8.0"
     },
     "require-dev": {

@@ -7,9 +7,10 @@ namespace Baspa\Larascan\Checks\Csrf;
 use Baspa\Larascan\Support\AbstractCheck;
 use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\Finding;
+use Baspa\Larascan\Support\MiddlewareIntrospection;
 use Baspa\Larascan\Support\Severity;
 use Illuminate\Contracts\Foundation\Application;
-use ReflectionClass;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Throwable;
 
 final class CsrfExceptSuspiciousCheck extends AbstractCheck
@@ -40,7 +41,7 @@ final class CsrfExceptSuspiciousCheck extends AbstractCheck
 
     public function isApplicable(): bool
     {
-        return class_exists('Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken');
+        return class_exists(PreventRequestForgery::class);
     }
 
     /**
@@ -48,31 +49,7 @@ final class CsrfExceptSuspiciousCheck extends AbstractCheck
      */
     public function run(): iterable
     {
-        try {
-            $middleware = $this->app->make('Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken');
-        } catch (Throwable) {
-            return;
-        }
-
-        try {
-            $reflection = new ReflectionClass($middleware);
-            if (! $reflection->hasProperty('except')) {
-                return;
-            }
-            $value = $reflection->getProperty('except')->getValue($middleware);
-        } catch (Throwable) {
-            return;
-        }
-
-        if (! is_array($value)) {
-            return;
-        }
-
-        foreach ($value as $entry) {
-            if (! is_string($entry)) {
-                continue;
-            }
-
+        foreach ($this->excludedPaths() as $entry) {
             if (! $this->isSuspicious($entry)) {
                 continue;
             }
@@ -83,6 +60,28 @@ final class CsrfExceptSuspiciousCheck extends AbstractCheck
                 message: "CSRF except list contains suspicious pattern '{$entry}' — this disables CSRF protection for entire URL trees.",
             );
         }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function excludedPaths(): array
+    {
+        // Middleware attached per route never shows up in the kernel, and the
+        // bootstrap/app.php list is global, so fall back to the framework class.
+        $classes = MiddlewareIntrospection::registeredSubclassesOf($this->app, PreventRequestForgery::class)
+            ?: [PreventRequestForgery::class];
+
+        $paths = [];
+        foreach ($classes as $class) {
+            try {
+                $paths = [...$paths, ...$this->app->make($class)->getExcludedPaths()];
+            } catch (Throwable) {
+                continue;
+            }
+        }
+
+        return array_values(array_unique(array_filter($paths, is_string(...))));
     }
 
     private function isSuspicious(string $entry): bool

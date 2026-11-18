@@ -70,6 +70,7 @@ it('runs the larascan command and shows the report', function () {
     $checks['php.display-errors'] = ['enabled' => false];
     $checks['csrf.middleware-disabled'] = ['enabled' => false];
     $checks['injection.host-header'] = ['enabled' => false];
+    $checks['dependencies.outdated-php'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan')
@@ -158,6 +159,7 @@ it('honors --only-failed flag', function () {
     $checks['php.display-errors'] = ['enabled' => false];
     $checks['csrf.middleware-disabled'] = ['enabled' => false];
     $checks['injection.host-header'] = ['enabled' => false];
+    $checks['dependencies.outdated-php'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --only-failed --format=human')
@@ -181,6 +183,7 @@ it('renders JSON output when --format=json', function () {
     $checks['php.display-errors'] = ['enabled' => false];
     $checks['csrf.middleware-disabled'] = ['enabled' => false];
     $checks['injection.host-header'] = ['enabled' => false];
+    $checks['dependencies.outdated-php'] = ['enabled' => false];
     config()->set('larascan.checks', $checks);
 
     $this->artisan('larascan --format=json')
