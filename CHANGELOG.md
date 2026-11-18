@@ -6,6 +6,8 @@ Some versions were tagged twice on the same commit (`v2.1.0` and `v3.0.0`, `v3.0
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-11-18
+
 ### Fixed
 
 - **`csrf.except-suspicious` now sees the except list from `bootstrap/app.php`.** Since Laravel 11, apps set it with `$middleware->preventRequestForgery(except: [...])` or the deprecated `validateCsrfTokens(except: [...])`. Laravel keeps that list outside the middleware's `$except` property, so the check never saw it in a standard Laravel 13 app. It now reads the merged list from the CSRF middleware registered in the HTTP kernel (`PreventRequestForgery`, or an app subclass such as `App\Http\Middleware\VerifyCsrfToken`) and reports each entry once. Apps with wildcard exceptions in `bootstrap/app.php` may see new findings.
@@ -212,7 +214,8 @@ Security-focused static analysis for Laravel applications. 70 checks across 15 c
 
 See README for full check inventory.
 
-[Unreleased]: https://github.com/Baspa/larascan/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/Baspa/larascan/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/Baspa/larascan/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/Baspa/larascan/compare/v3.1.4...v4.0.0
 [3.1.4]: https://github.com/Baspa/larascan/compare/v3.1.3...v3.1.4
 [3.1.3]: https://github.com/Baspa/larascan/compare/v3.1.2...v3.1.3
