@@ -6,6 +6,20 @@ Some versions were tagged twice on the same commit (`v2.1.0` and `v3.0.0`, `v3.0
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-11-18
+
+### Removed
+
+- **Laravel 12 support.** larascan now requires Laravel 13. Laravel 12 supports PHP up to 8.5 and no longer gets bug fixes. Stay on `^3.1` if your app is on Laravel 12.
+
+### Added
+
+- PHP 8.5 and 8.6 support. CI now runs PHP 8.3, 8.4, 8.5 and 8.6.
+
+### Changed
+
+- `spatie/laravel-package-tools` is now `^1.93`, the first release that allows Laravel 13.
+
 ## [3.1.4] — 2026-11-12
 
 ### Security
@@ -187,7 +201,8 @@ Security-focused static analysis for Laravel applications. 70 checks across 15 c
 
 See README for full check inventory.
 
-[Unreleased]: https://github.com/Baspa/larascan/compare/v3.1.4...HEAD
+[Unreleased]: https://github.com/Baspa/larascan/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/Baspa/larascan/compare/v3.1.4...v4.0.0
 [3.1.4]: https://github.com/Baspa/larascan/compare/v3.1.3...v3.1.4
 [3.1.3]: https://github.com/Baspa/larascan/compare/v3.1.2...v3.1.3
 [3.1.2]: https://github.com/Baspa/larascan/compare/v3.1.1...v3.1.2

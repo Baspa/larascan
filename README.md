@@ -308,7 +308,7 @@ Findings against local targets (`localhost`, `127.0.0.1`, `*.test`, `*.local`) a
 ## Requirements
 
 - PHP 8.3+
-- Laravel 11 / 12 / 13
+- Laravel 13
 
 ## Contributing
 
