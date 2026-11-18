@@ -7,6 +7,7 @@ namespace Baspa\Larascan\Checks\Cookies;
 use Baspa\Larascan\Support\AbstractCheck;
 use Baspa\Larascan\Support\Category;
 use Baspa\Larascan\Support\Finding;
+use Baspa\Larascan\Support\MiddlewareIntrospection;
 use Baspa\Larascan\Support\Severity;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -55,27 +56,7 @@ final class EncryptCookiesExcludesCheck extends AbstractCheck
      */
     public function run(): iterable
     {
-        try {
-            $middleware = $this->app->make(EncryptCookies::class);
-        } catch (Throwable) {
-            return;
-        }
-
-        $reflection = new ReflectionClass($middleware);
-        if (! $reflection->hasProperty('except')) {
-            return;
-        }
-
-        $exceptValue = $reflection->getProperty('except')->getValue($middleware);
-        if (! is_array($exceptValue)) {
-            return;
-        }
-
-        foreach ($exceptValue as $cookieName) {
-            if (! is_string($cookieName)) {
-                continue;
-            }
-
+        foreach ($this->excludedCookies() as $cookieName) {
             $matched = $this->matchedPattern($cookieName);
             if ($matched === null) {
                 continue;
@@ -87,6 +68,35 @@ final class EncryptCookiesExcludesCheck extends AbstractCheck
                 message: "Cookie '{$cookieName}' is excluded from encryption but matches the sensitive pattern '{$matched}'.",
             );
         }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function excludedCookies(): array
+    {
+        $classes = MiddlewareIntrospection::registeredSubclassesOf($this->app, EncryptCookies::class)
+            ?: [EncryptCookies::class];
+
+        $cookies = [];
+        foreach ($classes as $class) {
+            try {
+                $middleware = $this->app->make($class);
+            } catch (Throwable) {
+                continue;
+            }
+
+            // EncryptCookies has no getter for the list that bootstrap/app.php's
+            // encryptCookies(except:) writes, so read the static property directly.
+            $reflection = new ReflectionClass($middleware);
+            $cookies = [
+                ...$cookies,
+                ...(array) $reflection->getProperty('except')->getValue($middleware),
+                ...(array) $reflection->getProperty('neverEncrypt')->getValue(),
+            ];
+        }
+
+        return array_values(array_unique(array_filter($cookies, is_string(...))));
     }
 
     private function matchedPattern(string $cookieName): ?string
